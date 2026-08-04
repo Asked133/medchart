@@ -1,0 +1,42 @@
+/* app/globals.css */
+@import "tailwindcss";
+
+/* ── Fuentes ─────────────────────────────────────────────── */
+@theme inline {
+  --font-sans: var(--font-inter);
+}
+
+/* ── Reset mínimo ────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+/* ── Scrollbar discreta (WebKit) ─────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(51 65 85 / 0.8); /* slate-700 */
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(71 85 105 / 0.9); /* slate-600 */
+}
+
+/* ── Tap highlight en iOS ────────────────────────────────── */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Transición de página suave ──────────────────────────── */
+@view-transition {
+  navigation: auto;
+}
