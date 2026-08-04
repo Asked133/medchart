@@ -7,6 +7,16 @@ create extension if not exists "uuid-ossp";
 create extension if not exists unaccent with schema extensions;
 create extension if not exists pg_trgm;
 
+-- Envoltorio IMMUTABLE de unaccent (Requerido por Postgres para indexar expresiones)
+create or replace function public.immutable_unaccent(text)
+returns text
+language sql
+immutable
+parallel safe
+as $$
+  select extensions.unaccent('unaccent', $1);
+$$;
+
 -- 2. Tablas
 
 -- Perfiles de Médicos (Extensión de auth.users)
@@ -31,7 +41,7 @@ create table if not exists public.patients (
 );
 
 -- Documentos Clínicos (Historias Clínicas / Notas de Evolución)
--- Protegido estrictamente: ON DELETE RESTRICT evita borrados en cascada no deseados
+-- Protegido strictly: ON DELETE RESTRICT evita borrados en cascada no deseados
 create table if not exists public.clinical_documents (
   id uuid primary key default gen_random_uuid(),
   patient_id uuid not null references public.patients(id) on delete restrict,
@@ -58,8 +68,9 @@ create index if not exists idx_clinical_documents_patient_id on public.clinical_
 create index if not exists idx_clinical_documents_doctor_id on public.clinical_documents(doctor_id);
 create index if not exists idx_document_attachments_document_id on public.document_attachments(document_id);
 
--- Índice de Trigramas para búsqueda ultra-rápida e insensible a acentos
-create index if not exists idx_patients_full_name_trgm on public.patients using gin (unaccent(full_name) gin_trgm_ops);
+-- Índice de Trigramas IMMUTABLE para búsqueda ultra-rápida e insensible a acentos
+create index if not exists idx_patients_full_name_trgm 
+  on public.patients using gin (public.immutable_unaccent(full_name) gin_trgm_ops);
 
 -- 4. Habilitar Row Level Security (RLS)
 alter table public.profiles enable row level security;
@@ -113,7 +124,7 @@ create policy "Médicos pueden agregar adjuntos a sus documentos"
   on public.document_attachments for insert 
   with check (auth.uid() = doctor_id);
 
--- 6. Función RPC de Búsqueda de Pacientes (con unaccent e insensible a mayúsculas/acentos)
+-- 6. Función RPC de Búsqueda de Pacientes (Coincide exactamente con la función immutable para aprovechar el índice GIN)
 drop function if exists search_patients(text, uuid);
 drop function if exists search_patients(text);
 
@@ -127,7 +138,7 @@ begin
   return query
   select *
   from public.patients
-  where unaccent(full_name) ilike unaccent('%' || search_query || '%')
+  where public.immutable_unaccent(full_name) ilike public.immutable_unaccent('%' || search_query || '%')
     and doctor_id = auth.uid()
   order by full_name asc;
 end;
