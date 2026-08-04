@@ -7,14 +7,15 @@ create extension if not exists "uuid-ossp";
 create extension if not exists unaccent with schema extensions;
 create extension if not exists pg_trgm;
 
--- Envoltorio IMMUTABLE de unaccent (Requerido por Postgres para indexar expresiones)
+-- Envoltorio IMMUTABLE de unaccent (Forma de 1 argumento con search_path explícito para evitar fallos en INSERT/UPDATE por PostgREST)
 create or replace function public.immutable_unaccent(text)
 returns text
 language sql
 immutable
 parallel safe
+set search_path = extensions, public
 as $$
-  select extensions.unaccent('unaccent', $1);
+  select extensions.unaccent($1);
 $$;
 
 -- 2. Tablas
@@ -41,7 +42,7 @@ create table if not exists public.patients (
 );
 
 -- Documentos Clínicos (Historias Clínicas / Notas de Evolución)
--- Protegido strictly: ON DELETE RESTRICT evita borrados en cascada no deseados
+-- Protegido estrictamente: ON DELETE RESTRICT evita borrados en cascada no deseados
 create table if not exists public.clinical_documents (
   id uuid primary key default gen_random_uuid(),
   patient_id uuid not null references public.patients(id) on delete restrict,
