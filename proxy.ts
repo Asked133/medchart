@@ -38,8 +38,10 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Rutas públicas que no requieren sesión
+  // Rutas exentas / públicas
   const isPublicRoute = pathname === '/login'
+  const isChangePasswordRoute = pathname === '/cambiar-contrasena'
+  const isDeactivatedRoute = pathname === '/cuenta-desactivada'
 
   if (!user && !isPublicRoute) {
     // Sin sesión → redirige a login preservando la URL de destino
@@ -49,11 +51,56 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  if (user && (pathname === '/login' || pathname === '/')) {
-    // Ya tiene sesión → redirige a la lista de pacientes
-    const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = '/pacientes'
-    return NextResponse.redirect(redirectUrl)
+  if (user) {
+    // Consulta única del estado del perfil (is_active y must_change_password)
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('must_change_password, is_active')
+      .eq('id', user.id)
+      .single()
+
+    const profile = profileData as { must_change_password: boolean; is_active: boolean } | null
+    const isActive = profile?.is_active ?? true
+    const mustChangePassword = profile?.must_change_password ?? false
+
+    // 1. Prioridad Absoluta: Cuenta Desactivada
+    if (!isActive) {
+      if (!isDeactivatedRoute) {
+        const redirectUrl = request.nextUrl.clone()
+        redirectUrl.pathname = '/cuenta-desactivada'
+        return NextResponse.redirect(redirectUrl)
+      }
+      return supabaseResponse
+    }
+
+    // Si la cuenta está activa pero intenta acceder a la pantalla de cuenta desactivada
+    if (isActive && isDeactivatedRoute) {
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = '/pacientes'
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // 2. Prioridad Secundaria: Cambio obligatorio de contraseña
+    if (mustChangePassword && !isChangePasswordRoute) {
+      // Bloquea acceso a cualquier otra ruta protegida y fuerza la pantalla de cambio
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = '/cambiar-contrasena'
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    if (!mustChangePassword && isChangePasswordRoute) {
+      // Si ya no necesita cambiar contraseña, no debe acceder a /cambiar-contrasena
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = '/pacientes'
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    if (pathname === '/login' || pathname === '/') {
+      // Redirige a la vista correspondiente según su estado de cuenta
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = mustChangePassword ? '/cambiar-contrasena' : '/pacientes'
+      return NextResponse.redirect(redirectUrl)
+    }
   }
 
   return supabaseResponse

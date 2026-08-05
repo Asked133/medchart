@@ -1,0 +1,5 @@
+allowBuilds:
+  sharp: true
+  "@next/swc-win32-x64-msvc": true
+  "@img/sharp-win32-x64": true
+

@@ -28,10 +28,34 @@ export interface Database {
           address: string | null
           phone: string | null
           is_founder_account: boolean
+          must_change_password: boolean
+          is_active: boolean
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'created_at'>
-        Update: Partial<Database['public']['Tables']['profiles']['Insert']>
+        Insert: {
+          id: string
+          full_name: string
+          medical_license: string
+          specialty_title: string
+          address?: string | null
+          phone?: string | null
+          is_founder_account?: boolean
+          must_change_password?: boolean
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          full_name?: string
+          medical_license?: string
+          specialty_title?: string
+          address?: string | null
+          phone?: string | null
+          is_founder_account?: boolean
+          must_change_password?: boolean
+          is_active?: boolean
+          created_at?: string
+        }
       }
       patients: {
         Row: {

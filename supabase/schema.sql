@@ -29,6 +29,8 @@ create table if not exists public.profiles (
   address text,
   phone text,
   is_founder_account boolean not null default false,
+  must_change_password boolean not null default true,
+  is_active boolean not null default true,
   created_at timestamptz not null default now()
 );
 
@@ -152,7 +154,7 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.profiles (id, full_name, medical_license, specialty_title, address, phone, is_founder_account)
+  insert into public.profiles (id, full_name, medical_license, specialty_title, address, phone, is_founder_account, must_change_password, is_active)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'full_name', 'Dr. / Dra.'),
@@ -160,7 +162,9 @@ begin
     coalesce(new.raw_user_meta_data->>'specialty_title', 'Medicina General'),
     new.raw_user_meta_data->>'address',
     new.raw_user_meta_data->>'phone',
-    false
+    false,
+    true,
+    true
   );
   return new;
 end;

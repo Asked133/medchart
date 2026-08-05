@@ -1,14 +1,12 @@
 'use client'
-// app/login/LoginForm.tsx
-// Formulario de login — Client Component para usar useActionState.
 
 import { useActionState } from 'react'
-import { login, type LoginState } from '@/app/actions/auth'
-import { AlertCircle, Lock, Mail, ShieldCheck, Stethoscope } from 'lucide-react'
+import { changePassword, type ChangePasswordState } from '@/app/actions/auth'
+import { AlertCircle, KeyRound, Lock, ShieldCheck, Stethoscope } from 'lucide-react'
 
-export default function LoginForm() {
-  const [state, action, pending] = useActionState<LoginState, FormData>(
-    login,
+export default function ChangePasswordForm() {
+  const [state, action, pending] = useActionState<ChangePasswordState, FormData>(
+    changePassword,
     null
   )
 
@@ -41,14 +39,18 @@ export default function LoginForm() {
           <div className="p-7 sm:p-9">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-white tracking-wide">
-                Iniciar sesión
+                Nueva Contraseña
               </h2>
-              <span className="text-xs font-semibold text-blue-300 bg-blue-950/80 px-3 py-1 rounded-full border border-blue-500/30">
-                Acceso Médico
+              <span className="text-xs font-semibold text-amber-300 bg-amber-950/80 px-3 py-1 rounded-full border border-amber-500/30">
+                Cambio Obligatorio
               </span>
             </div>
 
-            <form action={action} className="space-y-6">
+            <p className="text-xs text-slate-300 mb-6 leading-relaxed bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+              Por razones de seguridad y privacidad médica, debes definir una contraseña personal que solo tú conozcas antes de acceder a la plataforma.
+            </p>
+
+            <form action={action} className="space-y-5">
               {/* Error global */}
               {state?.error && (
                 <div className="flex items-start gap-3 bg-red-500/15 border border-red-500/40 rounded-xl p-3.5 text-red-200 text-sm animate-in fade-in slide-in-from-top-1 duration-200">
@@ -57,50 +59,13 @@ export default function LoginForm() {
                 </div>
               )}
 
-              {/* Input Email ("El panel donde escribes") */}
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2"
-                >
-                  Correo electrónico
-                </label>
-                <div className="relative group">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none">
-                    <Mail className="w-5 h-5" />
-                  </div>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    placeholder="medico@clinica.com"
-                    className={`
-                      w-full pl-11 pr-4 py-3.5 rounded-xl text-sm font-medium text-white placeholder:text-slate-400
-                      bg-slate-950 border-2 transition-all duration-200 shadow-md
-                      focus:outline-none focus:ring-4 focus:ring-blue-500/25 focus:border-blue-400 focus:bg-slate-950
-                      ${state?.fieldErrors?.email
-                        ? 'border-red-500/80 bg-red-950/30 text-red-100 focus:border-red-500'
-                        : 'border-slate-700 hover:border-slate-500'
-                      }
-                    `}
-                  />
-                </div>
-                {state?.fieldErrors?.email?.map((e) => (
-                  <p key={e} className="text-red-400 text-xs font-medium mt-1.5 flex items-center gap-1">
-                    <span>•</span> {e}
-                  </p>
-                ))}
-              </div>
-
-              {/* Input Password */}
+              {/* Nueva Contraseña */}
               <div>
                 <label
                   htmlFor="password"
                   className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2"
                 >
-                  Contraseña
+                  Nueva contraseña
                 </label>
                 <div className="relative group">
                   <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none">
@@ -110,7 +75,7 @@ export default function LoginForm() {
                     id="password"
                     name="password"
                     type="password"
-                    autoComplete="current-password"
+                    autoComplete="new-password"
                     required
                     placeholder="••••••••"
                     className={`
@@ -131,9 +96,46 @@ export default function LoginForm() {
                 ))}
               </div>
 
+              {/* Confirmar Contraseña */}
+              <div>
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2"
+                >
+                  Confirmar nueva contraseña
+                </label>
+                <div className="relative group">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none">
+                    <KeyRound className="w-5 h-5" />
+                  </div>
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    placeholder="••••••••"
+                    className={`
+                      w-full pl-11 pr-4 py-3.5 rounded-xl text-sm font-medium text-white placeholder:text-slate-400
+                      bg-slate-950 border-2 transition-all duration-200 shadow-md
+                      focus:outline-none focus:ring-4 focus:ring-blue-500/25 focus:border-blue-400 focus:bg-slate-950
+                      ${state?.fieldErrors?.confirmPassword
+                        ? 'border-red-500/80 bg-red-950/30 text-red-100 focus:border-red-500'
+                        : 'border-slate-700 hover:border-slate-500'
+                      }
+                    `}
+                  />
+                </div>
+                {state?.fieldErrors?.confirmPassword?.map((e) => (
+                  <p key={e} className="text-red-400 text-xs font-medium mt-1.5 flex items-center gap-1">
+                    <span>•</span> {e}
+                  </p>
+                ))}
+              </div>
+
               {/* Submit Button */}
               <button
-                id="btn-login"
+                id="btn-change-password"
                 type="submit"
                 disabled={pending}
                 className="
@@ -152,10 +154,10 @@ export default function LoginForm() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                     </svg>
-                    Iniciando sesión…
+                    Actualizando contraseña…
                   </span>
                 ) : (
-                  'Iniciar sesión'
+                  'Guardar e ingresar'
                 )}
               </button>
             </form>
@@ -164,7 +166,7 @@ export default function LoginForm() {
             <div className="mt-8 pt-5 border-t border-slate-800 text-center">
               <div className="inline-flex items-center gap-1.5 text-xs text-slate-400 bg-slate-950/80 px-3.5 py-1.5 rounded-full border border-slate-800 shadow-sm">
                 <ShieldCheck className="w-4 h-4 text-cyan-400" />
-                <span>Acceso restringido al personal médico autorizado</span>
+                <span>Protegido con encriptación Supabase Auth</span>
               </div>
             </div>
           </div>
