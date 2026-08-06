@@ -110,13 +110,16 @@ export const config = {
   matcher: [
     /*
      * Aplica el proxy a todas las rutas excepto:
-     * - _next/static  (assets estáticos)
-     * - _next/image   (optimización de imágenes)
+     * - _next/static  (assets estáticos de Next.js)
+     * - _next/image   (optimización de imágenes de Next.js)
+     * - api/          (rutas de API internas — manejan su propia auth)
      * - favicon.ico
      * - sw.js         (service worker)
      * - manifest.webmanifest
-     * - íconos en /icons/*
+     * - icons/        (íconos PWA)
+     * - Archivos estáticos por extensión: imágenes, fuentes, documentos
      */
-    '/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|icons/).*)',
+    '/((?!_next/static|_next/image|api/|favicon\\.ico|sw\\.js|manifest\\.webmanifest|icons/|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico|woff|woff2|ttf|otf|xml|txt|json)$).*)',
   ],
 }
+

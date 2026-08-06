@@ -96,11 +96,13 @@ grant select, insert, update on table public.patients to authenticated;
 grant all on table public.patients to service_role;
 revoke all on table public.patients from anon;
 
-grant select, insert, update on table public.clinical_documents to authenticated;
+-- clinical_documents: INMUTABLE — solo SELECT e INSERT (no UPDATE, no DELETE)
+grant select, insert on table public.clinical_documents to authenticated;
 grant all on table public.clinical_documents to service_role;
 revoke all on table public.clinical_documents from anon;
 
-grant select, insert, update on table public.document_attachments to authenticated;
+-- document_attachments: INMUTABLE — solo SELECT e INSERT (no UPDATE, no DELETE)
+grant select, insert on table public.document_attachments to authenticated;
 grant all on table public.document_attachments to service_role;
 revoke all on table public.document_attachments from anon;
 

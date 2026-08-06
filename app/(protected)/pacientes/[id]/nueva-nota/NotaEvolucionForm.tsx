@@ -14,10 +14,12 @@ import ConfirmSaveModal from '@/components/clinical/ConfirmSaveModal'
 import DraftPromptModal from '@/components/clinical/DraftPromptModal'
 import { Save, WifiOff } from 'lucide-react'
 
-// ─── ESQUEMA ZOD NOTA DE EVOLUCIÓN ──────────────────────────────────────────
+// ─── ESQUEMA ZOD NOTA DE EVOLUCIÓN (NOM-004 § 6.2 — Formato SOAP) ───────────
 const notaEvolucionSchema = z.object({
-  padecimiento_actual: z.string().optional(),
-  exploracion_fisica: z.string().optional(),
+  // S — Subjetivo: lo que refiere el paciente (síntomas, motivo de consulta)
+  subjetivo: z.string().optional(),
+  // O — Objetivo: hallazgos de exploración física + signos vitales
+  objetivo: z.string().optional(),
   signos_vitales: z.object({
     talla: z.string().optional(),
     peso: z.string().optional(),
@@ -28,8 +30,10 @@ const notaEvolucionSchema = z.object({
     tension_arterial: z.string().optional(),
     saturacion: z.string().optional(),
   }),
-  plan_y_tratamiento: z.string().optional(),
-  estudios: z.string().optional(),
+  // A — Análisis: diagnóstico y razonamiento clínico
+  analisis: z.string().optional(),
+  // P — Plan: tratamiento, indicaciones, estudios solicitados
+  plan: z.string().optional(),
 })
 
 type FormData = z.infer<typeof notaEvolucionSchema>
@@ -54,15 +58,15 @@ export default function NotaEvolucionForm({
   const [pendingDraft, setPendingDraft] = useState<{ data: any; savedAt: string } | null>(null)
   const [isReadyToSaveDraft, setIsReadyToSaveDraft] = useState(false)
 
-  const DRAFT_KEY = `medchart_draft_nota_${patientId}`
+  const DRAFT_KEY = `medchart_draft_nota_v2_${patientId}`
 
   const methods = useForm<FormData>({
     resolver: zodResolver(notaEvolucionSchema),
     defaultValues: {
-      padecimiento_actual: '',
-      exploracion_fisica: '',
-      plan_y_tratamiento: '',
-      estudios: '',
+      subjetivo: '',
+      objetivo: '',
+      analisis: '',
+      plan: '',
     },
   })
 
@@ -191,18 +195,18 @@ export default function NotaEvolucionForm({
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
           
-          {/* Padecimiento Actual */}
+          {/* S — Subjetivo */}
           <TextArea
-            name="padecimiento_actual"
-            label="Padecimiento Actual"
-            placeholder="Motivo de esta consulta de seguimiento..."
+            name="subjetivo"
+            label="S — Subjetivo"
+            placeholder="Motivo de consulta y síntomas referidos por el paciente..."
             rows={5}
           />
 
-          {/* Exploración Física (Texto libre) */}
+          {/* O — Objetivo: Exploración física + signos vitales */}
           <TextArea
-            name="exploracion_fisica"
-            label="Exploración Física"
+            name="objetivo"
+            label="O — Objetivo"
             placeholder="Hallazgos de la exploración física..."
             rows={5}
           />
@@ -212,20 +216,20 @@ export default function NotaEvolucionForm({
             <SignosVitalesFields prefix="signos_vitales" />
           </div>
 
-          {/* Plan y Tratamiento */}
+          {/* A — Análisis */}
           <TextArea
-            name="plan_y_tratamiento"
-            label="Plan y Tratamiento"
-            placeholder="Plan terapéutico y recomendaciones..."
-            rows={5}
+            name="analisis"
+            label="A — Análisis"
+            placeholder="Diagnóstico y razonamiento clínico..."
+            rows={4}
           />
 
-          {/* Estudios */}
+          {/* P — Plan */}
           <TextArea
-            name="estudios"
-            label="Estudios"
-            placeholder="Estudios solicitados o revisados en esta consulta..."
-            rows={4}
+            name="plan"
+            label="P — Plan"
+            placeholder="Plan terapéutico, indicaciones médicas y estudios solicitados..."
+            rows={5}
           />
 
           {/* Componente Reutilizable de Imágenes */}

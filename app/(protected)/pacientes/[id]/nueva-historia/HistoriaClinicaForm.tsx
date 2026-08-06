@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm, FormProvider } from 'react-hook-form'
+import { useForm, FormProvider, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { db, type CachedPatient, type PendingPatient } from '@/lib/db/localDb'
@@ -51,6 +51,19 @@ const historiaClinicaSchema = z.object({
     exposicion_a_biomasa: z.string().optional(),
     factores_de_riesgo_cardiovascular: z.string().optional(),
   }),
+  antecedentes_gineco_obstetricos: z.object({
+    menarca: z.string().optional(),
+    ritmo_menstrual: z.string().optional(),
+    fur: z.string().optional(),
+    gesta: z.string().optional(),
+    partos: z.string().optional(),
+    cesareas: z.string().optional(),
+    abortos: z.string().optional(),
+    fup: z.string().optional(),
+    metodo_anticonceptivo: z.string().optional(),
+    menopausia: z.string().optional(),
+    colposcopia_previa: z.string().optional(),
+  }).optional(),
   padecimiento_actual: z.string().optional(),
   interrogatorio_aparatos_sistemas: z.object({
     aparato_respiratorio: z.string().optional(),
@@ -118,6 +131,7 @@ export default function HistoriaClinicaForm({
     'antecedentes_heredo_familiares': true,
     'antecedentes_personales_no_patologicos': true,
     'antecedentes_personales_patologicos': true,
+    'antecedentes_gineco_obstetricos': true,
     'padecimiento_actual': true,
     'interrogatorio_aparatos_sistemas': true,
     'exploracion_fisica': true,
@@ -144,8 +158,13 @@ export default function HistoriaClinicaForm({
         fecha_nacimiento: '',
         genero: '',
       },
+      antecedentes_gineco_obstetricos: {},
     }
   })
+
+  // Observar el género para mostrar sección G-O condicionalmente
+  const generoWatched = useWatch({ control: methods.control, name: 'ficha_identificacion.genero' })
+  const mostrarGinecoObstetricos = generoWatched === 'Femenino' || generoWatched === 'Otro'
 
   // Función para calcular la edad automáticamente según la fecha de nacimiento
   function calculateAge(birthDateString?: string): string {
@@ -504,6 +523,69 @@ export default function HistoriaClinicaForm({
               <TextInput name="antecedentes_personales_patologicos.factores_de_riesgo_cardiovascular" label="Factores de riesgo cardiovascular" />
             </div>
           </Section>
+
+          {/* Antecedentes Gineco-Obstétricos (solo para género Femenino / Intersexual) */}
+          {mostrarGinecoObstetricos && (
+            <Section id="antecedentes_gineco_obstetricos" title="Antecedentes Gineco-Obstétricos">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <TextInput name="antecedentes_gineco_obstetricos.menarca" label="Menarca (edad)" placeholder="Ej. 12 años" />
+                <TextInput name="antecedentes_gineco_obstetricos.ritmo_menstrual" label="Ritmo menstrual" placeholder="Ej. 28x5 (regular)" />
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1">Fecha de última regla (FUR)</label>
+                  <input
+                    type="date"
+                    {...methods.register('antecedentes_gineco_obstetricos.fur')}
+                    className="block w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-800/50 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm"
+                  />
+                </div>
+                <TextInput name="antecedentes_gineco_obstetricos.gesta" label="Gestas" placeholder="Ej. 2" />
+                <TextInput name="antecedentes_gineco_obstetricos.partos" label="Partos" placeholder="Ej. 1" />
+                <TextInput name="antecedentes_gineco_obstetricos.cesareas" label="Cesáreas" placeholder="Ej. 1" />
+                <TextInput name="antecedentes_gineco_obstetricos.abortos" label="Abortos" placeholder="Ej. 0" />
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1">Fecha de último parto (FUP)</label>
+                  <input
+                    type="date"
+                    {...methods.register('antecedentes_gineco_obstetricos.fup')}
+                    className="block w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-800/50 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm"
+                  />
+                </div>
+                <SelectInput
+                  name="antecedentes_gineco_obstetricos.metodo_anticonceptivo"
+                  label="Método anticonceptivo"
+                  options={[
+                    { label: 'Ninguno', value: 'Ninguno' },
+                    { label: 'Píldora anticonceptiva', value: 'Píldora' },
+                    { label: 'DIU', value: 'DIU' },
+                    { label: 'Condón', value: 'Condón' },
+                    { label: 'Parche', value: 'Parche' },
+                    { label: 'Inyectable', value: 'Inyectable' },
+                    { label: 'Implante subdérmico', value: 'Implante subdérmico' },
+                    { label: 'Ligadura tubaria', value: 'Ligadura tubaria' },
+                    { label: 'Otro', value: 'Otro' },
+                  ]}
+                />
+                <SelectInput
+                  name="antecedentes_gineco_obstetricos.menopausia"
+                  label="Menopausia"
+                  options={[
+                    { label: 'No', value: 'No' },
+                    { label: 'Sí (natural)', value: 'Sí (natural)' },
+                    { label: 'Sí (quirúrgica)', value: 'Sí (quirúrgica)' },
+                  ]}
+                />
+                <SelectInput
+                  name="antecedentes_gineco_obstetricos.colposcopia_previa"
+                  label="Colposcopía previa"
+                  options={[
+                    { label: 'No', value: 'No' },
+                    { label: 'Sí — normal', value: 'Sí - normal' },
+                    { label: 'Sí — con hallazgos', value: 'Sí - con hallazgos' },
+                  ]}
+                />
+              </div>
+            </Section>
+          )}
 
           <Section id="padecimiento_actual" title="Padecimiento Actual">
             <TextArea name="padecimiento_actual" label="Descripción del padecimiento actual" rows={6} />

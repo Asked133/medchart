@@ -15,12 +15,18 @@ function getSupabase() {
 }
 
 const LABELS: Record<string, string> = {
-  // Common
+  // Nota de Evolución — formato SOAP (nuevo, NOM-004 § 6.2)
+  subjetivo: 'S — Subjetivo',
+  objetivo: 'O — Objetivo',
+  analisis: 'A — Análisis',
+  plan: 'P — Plan',
+  // Nota de Evolución — formato heredado (compatibilidad con documentos existentes)
   padecimiento_actual: 'Padecimiento Actual',
   exploracion_fisica: 'Exploración Física',
   signos_vitales: 'Signos Vitales y Somatometría',
   plan_y_tratamiento: 'Plan y Tratamiento',
   estudios: 'Estudios',
+
   
   // Signos vitales
   talla: 'Talla',
@@ -100,6 +106,20 @@ const LABELS: Record<string, string> = {
   
   examenes_previos: 'Exámenes Previos',
   diagnosticos: 'Diagnósticos',
+
+  // Gineco-Obstétricos
+  antecedentes_gineco_obstetricos: 'Antecedentes Gineco-Obstétricos',
+  menarca: 'Menarca',
+  ritmo_menstrual: 'Ritmo menstrual',
+  fur: 'Fecha de última regla (FUR)',
+  gesta: 'Gestas',
+  partos: 'Partos',
+  cesareas: 'Cesáreas',
+  abortos: 'Abortos',
+  fup: 'Fecha de último parto (FUP)',
+  metodo_anticonceptivo: 'Método anticonceptivo',
+  menopausia: 'Menopausia',
+  colposcopia_previa: 'Colposcopía previa',
 }
 
 type AttachmentView = {
@@ -285,15 +305,35 @@ export default function DocumentView({
   }
 
   // ─── RENDERIZADO EXPLÍCITO NOTA DE EVOLUCIÓN ──────────────────────────────
+  // Soporta ambos formatos:
+  //   • SOAP nuevo (subjetivo, objetivo, analisis, plan) — NOM-004 § 6.2
+  //   • Formato heredado (padecimiento_actual, exploracion_fisica, plan_y_tratamiento, estudios)
+  const isSoapFormat = !!(content.subjetivo !== undefined || content.objetivo !== undefined || content.analisis !== undefined || content.plan !== undefined)
+
   const renderNotaEvolucionContent = () => (
     <>
-      {renderTextBlock('padecimiento_actual', 'Padecimiento Actual', content.padecimiento_actual)}
-      {renderTextBlock('exploracion_fisica', 'Exploración Física', content.exploracion_fisica)}
-      {renderSignosVitalesBlock(content.signos_vitales)}
-      {renderTextBlock('plan_y_tratamiento', 'Plan y Tratamiento', content.plan_y_tratamiento)}
-      {renderTextBlock('estudios', 'Estudios', content.estudios)}
+      {isSoapFormat ? (
+        // Formato SOAP
+        <>
+          {renderTextBlock('subjetivo', 'S — Subjetivo', content.subjetivo)}
+          {renderTextBlock('objetivo', 'O — Objetivo', content.objetivo)}
+          {renderSignosVitalesBlock(content.signos_vitales)}
+          {renderTextBlock('analisis', 'A — Análisis', content.analisis)}
+          {renderTextBlock('plan', 'P — Plan', content.plan)}
+        </>
+      ) : (
+        // Formato heredado (documentos guardados antes del cambio)
+        <>
+          {renderTextBlock('padecimiento_actual', 'Padecimiento Actual', content.padecimiento_actual)}
+          {renderTextBlock('exploracion_fisica', 'Exploración Física', content.exploracion_fisica)}
+          {renderSignosVitalesBlock(content.signos_vitales)}
+          {renderTextBlock('plan_y_tratamiento', 'Plan y Tratamiento', content.plan_y_tratamiento)}
+          {renderTextBlock('estudios', 'Estudios', content.estudios)}
+        </>
+      )}
     </>
   )
+
 
   // ─── RENDERIZADO EXPLÍCITO HISTORIA CLÍNICA ────────────────────────────────
   const renderHistoriaClinicaContent = () => {
@@ -306,6 +346,7 @@ export default function DocumentView({
         {renderTextBlock('antecedentes_heredo_familiares', 'Antecedentes Heredo-Familiares', content.antecedentes_heredo_familiares)}
         {renderFieldsGroup('antecedentes_personales_no_patologicos', 'Antecedentes Personales No Patológicos', content.antecedentes_personales_no_patologicos)}
         {renderFieldsGroup('antecedentes_personales_patologicos', 'Antecedentes Personales Patológicos', content.antecedentes_personales_patologicos)}
+        {content.antecedentes_gineco_obstetricos && renderFieldsGroup('antecedentes_gineco_obstetricos', 'Antecedentes Gineco-Obstétricos', content.antecedentes_gineco_obstetricos)}
         {renderTextBlock('padecimiento_actual', 'Padecimiento Actual', content.padecimiento_actual)}
         {renderFieldsGroup('interrogatorio_aparatos_sistemas', 'Interrogatorio por Aparatos y Sistemas', content.interrogatorio_aparatos_sistemas)}
         
