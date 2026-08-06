@@ -81,11 +81,17 @@ create index if not exists idx_document_attachments_document_id on public.docume
 create index if not exists idx_patients_full_name_trgm 
   on public.patients using gin (public.immutable_unaccent(full_name) gin_trgm_ops);
 
--- 4. Habilitar Row Level Security (RLS)
+-- 4. Habilitar Row Level Security (RLS) y Otorgar Permisos de Rol
 alter table public.profiles enable row level security;
 alter table public.patients enable row level security;
 alter table public.clinical_documents enable row level security;
 alter table public.document_attachments enable row level security;
+
+-- Otorgar permisos de tabla a los roles de Supabase
+grant all on table public.profiles to authenticated, service_role, anon;
+grant all on table public.patients to authenticated, service_role, anon;
+grant all on table public.clinical_documents to authenticated, service_role, anon;
+grant all on table public.document_attachments to authenticated, service_role, anon;
 
 -- 5. Políticas de Seguridad RLS
 
