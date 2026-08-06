@@ -157,31 +157,24 @@ export async function changePassword(
   }
 
   // 2. Desmarca el flag obligatorio en el perfil del usuario
-  const { error: updateError } = await (supabase
+  const { error: updateProfileError } = await (supabase
     .from('profiles') as any)
-    .update({ must_change_password: false })
-    .eq('id', user.id)
-
-  if (updateError) {
-    console.error('[changePassword] Error al actualizar perfil:', updateError)
-    
-    // Si falló porque la fila no existe, intentamos insertarla
-    const { error: insertError } = await (supabase
-      .from('profiles') as any)
-      .upsert({
+    .upsert(
+      {
         id: user.id,
         full_name: user.user_metadata?.full_name || 'Dr. / Dra.',
         medical_license: user.user_metadata?.medical_license || 'Pendiente',
         specialty_title: user.user_metadata?.specialty_title || 'Medicina General',
         must_change_password: false,
-        is_active: true
-      })
+        is_active: true,
+      },
+      { onConflict: 'id' }
+    )
 
-    if (insertError) {
-      console.error('[changePassword] Error al insertar perfil:', insertError)
-      return { 
-        error: insertError.message || updateError.message || 'Error al actualizar el perfil. Revisa la base de datos en Supabase.' 
-      }
+  if (updateProfileError) {
+    console.error('[changePassword] Error al actualizar perfil en BD:', updateProfileError)
+    return { 
+      error: updateProfileError.message || 'Error al actualizar el perfil en la base de datos.' 
     }
   }
 
