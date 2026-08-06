@@ -152,7 +152,8 @@ export async function changePassword(
   })
 
   if (updateAuthError) {
-    return { error: 'No se pudo actualizar la contraseña. Inténtalo de nuevo.' }
+    console.error('[changePassword] Error en Supabase Auth:', updateAuthError)
+    return { error: updateAuthError.message || 'No se pudo actualizar la contraseña. Inténtalo de nuevo.' }
   }
 
   // 2. Desmarca el flag obligatorio en el perfil del usuario
