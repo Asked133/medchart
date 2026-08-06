@@ -21,7 +21,8 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
   const isOnline = useOnlineStatus()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<(CachedPatient | PendingPatient)[]>([])
-  const [isSearching, setIsSearching] = useState(false)
+  const [isSearching, setIsSearching] = useState(true) // Inicia en true para indicar carga inicial
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false)
   
   // Estado para el modal de nuevo paciente
   const [showNewModal, setShowNewModal] = useState(false)
@@ -31,17 +32,40 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
 
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
 
+  // 1. Carga instantánea local de Dexie al montar (0ms latencia percibida)
+  useEffect(() => {
+    async function loadLocalFast() {
+      try {
+        const cached = await db.cached_patients.filter(p => p.doctor_id === doctorId).toArray()
+        const pending = await db.pending_patients.filter(p => p.doctor_id === doctorId).toArray()
+        const combined = [...pending, ...cached]
+        const unique = Array.from(new Map(combined.map(p => [p.id, p])).values())
+        unique.sort((a, b) => a.full_name.localeCompare(b.full_name))
+        
+        if (unique.length > 0) {
+          setResults(unique)
+          setHasLoadedOnce(true)
+        }
+      } catch (err) {
+        console.warn('Error en pre-carga local:', err)
+      }
+    }
+    loadLocalFast()
+  }, [doctorId])
+
+  // 2. Búsqueda con debounce para consultas largas o instantánea para búsqueda vacía
   useEffect(() => {
     if (debounceTimeout.current) clearTimeout(debounceTimeout.current)
 
+    const delay = query.trim() ? 300 : 0
     debounceTimeout.current = setTimeout(() => {
       performSearch(query.trim())
-    }, 300)
+    }, delay)
 
     return () => {
       if (debounceTimeout.current) clearTimeout(debounceTimeout.current)
     }
-  }, [query, isOnline])
+  }, [query, isOnline, doctorId])
 
   async function performSearch(searchTerm: string) {
     setIsSearching(true)
@@ -56,7 +80,6 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-        // Si hay término de búsqueda usamos RPC, si está vacío consultamos todos los pacientes del médico
         let resData: any = null
         let resError: any = null
 
@@ -84,7 +107,6 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
         searchedOnline = true
         onlineResults = resData || []
         
-        // Cachear resultados encontrados en IndexedDB (Dexie)
         if (onlineResults.length > 0) {
           const toCache: CachedPatient[] = onlineResults.map(r => ({
             id: r.id,
@@ -98,12 +120,11 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
         }
       } catch (err: any) {
         console.warn('[search] Búsqueda online falló, cayendo a búsqueda local:', err.message)
-        searchedOnline = false // Forzar fallback
+        searchedOnline = false
       }
     }
 
     if (!searchedOnline) {
-      // Búsqueda offline en Dexie (cached + pending)
       const termLower = searchTerm.toLowerCase()
       const removeAccents = (str: string) => 
         str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -112,7 +133,7 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
 
       const filterFn = (p: CachedPatient | PendingPatient) => {
         if (p.doctor_id !== doctorId) return false
-        if (!termNoAccents) return true // Si no hay término, devuelve todos los del médico
+        if (!termNoAccents) return true
         const nameNoAccents = removeAccents(p.full_name.toLowerCase())
         return nameNoAccents.includes(termNoAccents)
       }
@@ -120,16 +141,12 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
       const cached = await db.cached_patients.filter(filterFn).toArray()
       const pending = await db.pending_patients.filter(filterFn).toArray()
 
-      // Juntar y deduplicar por id
       const combined = [...pending, ...cached]
       const unique = Array.from(new Map(combined.map(p => [p.id, p])).values())
-      
-      // Ordenar alfabéticamente
       unique.sort((a, b) => a.full_name.localeCompare(b.full_name))
       
       onlineResults = unique
     } else {
-      // Aún si fue online, necesitamos incluir los pending_patients locales
       const termLower = searchTerm.toLowerCase()
       const removeAccents = (str: string) => 
         str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -151,6 +168,7 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
 
     setResults(onlineResults)
     setIsSearching(false)
+    setHasLoadedOnce(true)
   }
 
   async function handleCreatePatient(e: React.FormEvent) {
@@ -204,7 +222,6 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
     setShowNewModal(false)
     setNewPatientName('')
 
-    // Redirigir directamente al nuevo paciente para iniciar expediente
     router.push(`/pacientes/${newId}`)
   }
 
@@ -267,41 +284,52 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
               </li>
             ))}
           </ul>
-        ) : (
-          !isSearching && (
-            <div className="px-4 py-12 text-center">
-              {query.trim().length > 0 ? (
-                <>
-                  <p className="text-sm text-slate-400 mb-4">No se encontraron pacientes con "{query}"</p>
-                  <button
-                    onClick={() => {
-                      setNewPatientName(query)
-                      setShowNewModal(true)
-                    }}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-slate-900 transition-colors"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Registrar "{query}" como nuevo paciente
-                  </button>
-                </>
-              ) : (
-                <div className="flex flex-col items-center">
-                  <User className="w-12 h-12 text-slate-600 mb-3" />
-                  <p className="text-sm text-slate-400 mb-4">Aún no tienes pacientes registrados.</p>
-                  <button
-                    onClick={() => {
-                      setNewPatientName('')
-                      setShowNewModal(true)
-                    }}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-500 transition-colors"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Registrar tu primer paciente
-                  </button>
-                </div>
-              )}
+        ) : (isSearching || !hasLoadedOnce) ? (
+          /* Estado de Carga Elegante (Skeleton) — Evita sustos de "No hay pacientes" */
+          <div className="p-6 space-y-4 animate-pulse">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-slate-800 shrink-0" />
+              <div className="h-4 bg-slate-800 rounded w-1/3" />
             </div>
-          )
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-slate-800 shrink-0" />
+              <div className="h-4 bg-slate-800 rounded w-1/4" />
+            </div>
+          </div>
+        ) : (
+          /* Confirmado Sin Pacientes tras finalizar carga */
+          <div className="px-4 py-12 text-center">
+            {query.trim().length > 0 ? (
+              <>
+                <p className="text-sm text-slate-400 mb-4">No se encontraron pacientes con "{query}"</p>
+                <button
+                  onClick={() => {
+                    setNewPatientName(query)
+                    setShowNewModal(true)
+                  }}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-slate-900 transition-colors"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Registrar "{query}" como nuevo paciente
+                </button>
+              </>
+            ) : (
+              <div className="flex flex-col items-center">
+                <User className="w-12 h-12 text-slate-600 mb-3" />
+                <p className="text-sm text-slate-400 mb-4">Aún no tienes pacientes registrados.</p>
+                <button
+                  onClick={() => {
+                    setNewPatientName('')
+                    setShowNewModal(true)
+                  }}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-500 transition-colors"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Registrar tu primer paciente
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
