@@ -52,6 +52,7 @@ export default function NotaEvolucionForm({
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
   const [pendingDraft, setPendingDraft] = useState<{ data: any; savedAt: string } | null>(null)
+  const [isReadyToSaveDraft, setIsReadyToSaveDraft] = useState(false)
 
   const DRAFT_KEY = `medchart_draft_nota_${patientId}`
 
@@ -83,19 +84,24 @@ export default function NotaEvolucionForm({
               data: parsed.data,
               savedAt: parsed.savedAt || 'recientemente'
             })
+          } else {
+            setIsReadyToSaveDraft(true)
           }
+        } else {
+          setIsReadyToSaveDraft(true)
         }
       } catch (err) {
         console.warn('Error leyendo borrador de nota:', err)
+        setIsReadyToSaveDraft(true)
       }
     }
     loadPatient()
   }, [patientId, initialPatient, methods, DRAFT_KEY])
 
-  // 2. Auto-guardar borrador de TEXTO en localStorage mientras se escribe
+  // 2. Auto-guardar borrador de TEXTO en localStorage únicamente cuando ya se resolvió la carga inicial
   useEffect(() => {
     const subscription = methods.watch((values) => {
-      if (!values) return
+      if (!values || !isReadyToSaveDraft) return
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify({
           data: values,
@@ -104,12 +110,13 @@ export default function NotaEvolucionForm({
       } catch (e) {}
     })
     return () => subscription.unsubscribe()
-  }, [methods.watch, DRAFT_KEY])
+  }, [methods.watch, DRAFT_KEY, isReadyToSaveDraft])
 
   function handleContinueDraft() {
     if (pendingDraft) {
       methods.reset(pendingDraft.data)
       setPendingDraft(null)
+      setIsReadyToSaveDraft(true)
     }
   }
 
@@ -118,6 +125,7 @@ export default function NotaEvolucionForm({
       localStorage.removeItem(DRAFT_KEY)
     } catch (e) {}
     setPendingDraft(null)
+    setIsReadyToSaveDraft(true)
   }
 
   const onSubmit = () => {

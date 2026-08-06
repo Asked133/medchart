@@ -132,6 +132,7 @@ export default function HistoriaClinicaForm({
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
   const [pendingDraft, setPendingDraft] = useState<{ data: any; savedAt: string } | null>(null)
+  const [isReadyToSaveDraft, setIsReadyToSaveDraft] = useState(false)
 
   const DRAFT_KEY = `medchart_draft_historia_${patientId}`
 
@@ -146,6 +147,27 @@ export default function HistoriaClinicaForm({
     }
   })
 
+  // Función para calcular la edad automáticamente según la fecha de nacimiento
+  function calculateAge(birthDateString?: string): string {
+    if (!birthDateString) return ''
+    const birthDate = new Date(birthDateString)
+    if (isNaN(birthDate.getTime())) return ''
+    const today = new Date()
+    let years = today.getFullYear() - birthDate.getFullYear()
+    const monthDiff = today.getMonth() - birthDate.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      years--
+    }
+    if (years < 0) return ''
+    if (years === 0) {
+      let months = (today.getFullYear() - birthDate.getFullYear()) * 12 + (today.getMonth() - birthDate.getMonth())
+      if (today.getDate() < birthDate.getDate()) months--
+      if (months <= 0) return 'Recién nacido'
+      return `${months} ${months === 1 ? 'mes' : 'meses'}`
+    }
+    return `${years} ${years === 1 ? 'año' : 'años'}`
+  }
+
   // 1. Cargar paciente y detectar si hay un borrador pendiente
   useEffect(() => {
     async function loadPatient() {
@@ -158,6 +180,8 @@ export default function HistoriaClinicaForm({
         methods.setValue('ficha_identificacion.nombre_completo', pat.full_name)
         if (pat.date_of_birth) {
           methods.setValue('ficha_identificacion.fecha_nacimiento', pat.date_of_birth)
+          const autoAge = calculateAge(pat.date_of_birth)
+          if (autoAge) methods.setValue('ficha_identificacion.edad', autoAge)
         }
       }
 
@@ -171,19 +195,24 @@ export default function HistoriaClinicaForm({
               data: parsed.data,
               savedAt: parsed.savedAt || 'recientemente'
             })
+          } else {
+            setIsReadyToSaveDraft(true)
           }
+        } else {
+          setIsReadyToSaveDraft(true)
         }
       } catch (err) {
         console.warn('Error leyendo borrador:', err)
+        setIsReadyToSaveDraft(true)
       }
     }
     loadPatient()
   }, [patientId, initialPatient, methods, DRAFT_KEY])
 
-  // 2. Auto-guardar borrador de TEXTO en localStorage mientras el médico escribe
+  // 2. Auto-guardar borrador de TEXTO en localStorage únicamente cuando ya se resolvió la carga inicial
   useEffect(() => {
     const subscription = methods.watch((values) => {
-      if (!values) return
+      if (!values || !isReadyToSaveDraft) return
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify({
           data: values,
@@ -192,13 +221,14 @@ export default function HistoriaClinicaForm({
       } catch (e) {}
     })
     return () => subscription.unsubscribe()
-  }, [methods.watch, DRAFT_KEY])
+  }, [methods.watch, DRAFT_KEY, isReadyToSaveDraft])
 
   // Respuesta al modal: Restaurar borrador
   function handleContinueDraft() {
     if (pendingDraft) {
       methods.reset(pendingDraft.data)
       setPendingDraft(null)
+      setIsReadyToSaveDraft(true)
     }
   }
 
@@ -208,6 +238,7 @@ export default function HistoriaClinicaForm({
       localStorage.removeItem(DRAFT_KEY)
     } catch (e) {}
     setPendingDraft(null)
+    setIsReadyToSaveDraft(true)
   }
 
   const toggleSection = (section: string) => {
@@ -256,6 +287,33 @@ export default function HistoriaClinicaForm({
       />
     </div>
   )
+
+  const SelectInput = ({
+    name,
+    label,
+    options,
+    required = false
+  }: {
+    name: any
+    label: string
+    options: { label: string; value: string }[]
+    required?: boolean
+  }) => (
+    <div>
+      <label className="block text-xs font-medium text-slate-400 mb-1">{label} {required && '*'}</label>
+      <select
+        {...methods.register(name)}
+        className="block w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-800/50 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm"
+      >
+        <option value="">-- Seleccionar --</option>
+        {options.map(opt => (
+          <option key={opt.value} value={opt.value} className="bg-slate-900 text-slate-200">
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
   
   const TextArea = ({ name, label, rows = 3 }: { name: any; label: string; rows?: number }) => (
     <div>
@@ -271,14 +329,14 @@ export default function HistoriaClinicaForm({
   const Section = ({ id, title, children }: { id: string; title: string; children: React.ReactNode }) => {
     const isExpanded = expandedSections[id]
     return (
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm transition-all duration-200">
         <button
           type="button"
           onClick={() => toggleSection(id)}
-          className="w-full px-5 py-4 flex items-center justify-between bg-slate-800/20 hover:bg-slate-800/40 transition-colors"
+          className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-slate-800/40 transition-colors"
         >
-          <h2 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">{title}</h2>
-          {isExpanded ? <ChevronUp className="w-5 h-5 text-slate-500" /> : <ChevronDown className="w-5 h-5 text-slate-500" />}
+          <span className="text-base font-semibold text-slate-200">{title}</span>
+          {isExpanded ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
         </button>
         {isExpanded && <div className="p-5 border-t border-slate-800/50 space-y-4">{children}</div>}
       </div>
@@ -320,32 +378,99 @@ export default function HistoriaClinicaForm({
                 <label className="block text-xs font-medium text-slate-400 mb-1">Fecha de nacimiento *</label>
                 <input
                   type="date"
-                  {...methods.register('ficha_identificacion.fecha_nacimiento')}
+                  {...methods.register('ficha_identificacion.fecha_nacimiento', {
+                    onChange: (e) => {
+                      const calculated = calculateAge(e.target.value)
+                      if (calculated) methods.setValue('ficha_identificacion.edad', calculated)
+                    }
+                  })}
                   className="block w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-800/50 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm"
                 />
                 {methods.formState.errors.ficha_identificacion?.fecha_nacimiento && (
                   <p className="text-red-400 text-xs mt-1">{methods.formState.errors.ficha_identificacion.fecha_nacimiento.message}</p>
                 )}
               </div>
+              
+              <SelectInput
+                name="ficha_identificacion.genero"
+                label="Género"
+                required
+                options={[
+                  { label: 'Femenino', value: 'Femenino' },
+                  { label: 'Masculino', value: 'Masculino' },
+                  { label: 'Otro / Intersexual', value: 'Otro' },
+                ]}
+              />
+
+              <TextInput name="ficha_identificacion.edad" label="Edad (Cálculo automático)" placeholder="Ej. 28 años" />
+
+              <SelectInput
+                name="ficha_identificacion.estado_civil"
+                label="Estado civil"
+                options={[
+                  { label: 'Soltero(a)', value: 'Soltero(a)' },
+                  { label: 'Casado(a)', value: 'Casado(a)' },
+                  { label: 'Unión libre', value: 'Unión libre' },
+                  { label: 'Divorciado(a)', value: 'Divorciado(a)' },
+                  { label: 'Viudo(a)', value: 'Viudo(a)' },
+                  { label: 'Otro', value: 'Otro' },
+                ]}
+              />
+
+              <SelectInput
+                name="ficha_identificacion.nacionalidad"
+                label="Nacionalidad"
+                options={[
+                  { label: 'Mexicana', value: 'Mexicana' },
+                  { label: 'Estadounidense', value: 'Estadounidense' },
+                  { label: 'Canadiense', value: 'Canadiense' },
+                  { label: 'Guatemalteca', value: 'Guatemalteca' },
+                  { label: 'Colombiana', value: 'Colombiana' },
+                  { label: 'Venezolana', value: 'Venezolana' },
+                  { label: 'Española', value: 'Española' },
+                  { label: 'Otra', value: 'Otra' },
+                ]}
+              />
+
+              <TextInput name="ficha_identificacion.lugar_nacimiento" label="Lugar de nacimiento" placeholder="Ej. Ciudad de México, Jalisco..." />
+              <TextInput name="ficha_identificacion.direccion" label="Dirección" placeholder="Ej. Av. Insurgentes Sur 123, Col. Roma..." />
+
+              <SelectInput
+                name="ficha_identificacion.escolaridad"
+                label="Escolaridad"
+                options={[
+                  { label: 'Ninguna / Analfabeto', value: 'Ninguna' },
+                  { label: 'Primaria incompleta', value: 'Primaria incompleta' },
+                  { label: 'Primaria completa', value: 'Primaria completa' },
+                  { label: 'Secundaria', value: 'Secundaria' },
+                  { label: 'Preparatoria / Bachillerato', value: 'Preparatoria' },
+                  { label: 'Técnico / Comercial', value: 'Técnico' },
+                  { label: 'Licenciatura / Profesional', value: 'Licenciatura' },
+                  { label: 'Posgrado (Maestría / Doctorado)', value: 'Posgrado' },
+                ]}
+              />
+
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Género *</label>
+                <label className="block text-xs font-medium text-slate-400 mb-1">Ocupación</label>
                 <input
-                  {...methods.register('ficha_identificacion.genero')}
-                  placeholder="Ej. Femenino, Masculino"
+                  list="ocupaciones-sugerencias"
+                  {...methods.register('ficha_identificacion.ocupacion')}
+                  placeholder="Ej. Empleado, Hogar, Estudiante..."
                   className="block w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-800/50 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm"
                 />
-                {methods.formState.errors.ficha_identificacion?.genero && (
-                  <p className="text-red-400 text-xs mt-1">{methods.formState.errors.ficha_identificacion.genero.message}</p>
-                )}
+                <datalist id="ocupaciones-sugerencias">
+                  <option value="Hogar / Ama de casa" />
+                  <option value="Empleado(a)" />
+                  <option value="Estudiante" />
+                  <option value="Comerciante" />
+                  <option value="Profesional independiente" />
+                  <option value="Campesino / Agricultor" />
+                  <option value="Jubilado(a) / Pensionado(a)" />
+                  <option value="Desempleado(a)" />
+                </datalist>
               </div>
-              <TextInput name="ficha_identificacion.edad" label="Edad" />
-              <TextInput name="ficha_identificacion.estado_civil" label="Estado civil" />
-              <TextInput name="ficha_identificacion.nacionalidad" label="Nacionalidad" />
-              <TextInput name="ficha_identificacion.lugar_nacimiento" label="Lugar de nacimiento" />
-              <TextInput name="ficha_identificacion.direccion" label="Dirección" />
-              <TextInput name="ficha_identificacion.escolaridad" label="Escolaridad" />
-              <TextInput name="ficha_identificacion.ocupacion" label="Ocupación" />
-              <TextInput name="ficha_identificacion.persona_responsable" label="Persona responsable del paciente" />
+
+              <TextInput name="ficha_identificacion.persona_responsable" label="Persona responsable del paciente" placeholder="Nombre y parentesco..." />
             </div>
           </Section>
 
