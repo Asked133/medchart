@@ -6,7 +6,8 @@
 import { useState, useEffect, useTransition } from 'react'
 import { logout } from '@/app/actions/auth'
 import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus'
-import { Stethoscope, Wifi, WifiOff, LogOut, ChevronDown } from 'lucide-react'
+import { useTheme } from '@/lib/hooks/useTheme'
+import { Stethoscope, Wifi, WifiOff, LogOut, ChevronDown, Sun, Moon } from 'lucide-react'
 
 interface TopBarProps {
   doctorName: string
@@ -15,6 +16,7 @@ interface TopBarProps {
 
 export default function TopBar({ doctorName, specialtyTitle }: TopBarProps) {
   const isOnline = useOnlineStatus()
+  const { theme, toggleTheme } = useTheme()
   const [isPending, startTransition] = useTransition()
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -52,6 +54,21 @@ export default function TopBar({ doctorName, specialtyTitle }: TopBarProps) {
 
         {/* Right side */}
         <div className="flex items-center gap-3">
+          {/* Botón de Modo Claro / Modo Oscuro */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white border border-slate-700/60 transition-colors"
+            title={theme === 'dark' ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'}
+            aria-label="Alternar tema"
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-4 h-4 text-amber-400" />
+            ) : (
+              <Moon className="w-4 h-4 text-indigo-500" />
+            )}
+          </button>
+
           {/* Indicador de conexión */}
           <div
             className={`

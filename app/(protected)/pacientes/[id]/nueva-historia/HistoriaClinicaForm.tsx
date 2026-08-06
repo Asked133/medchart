@@ -114,7 +114,16 @@ export default function HistoriaClinicaForm({
   
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     'ficha_identificacion': true,
+    'antecedentes_heredo_familiares': true,
+    'antecedentes_personales_no_patologicos': true,
+    'antecedentes_personales_patologicos': true,
     'padecimiento_actual': true,
+    'interrogatorio_aparatos_sistemas': true,
+    'exploracion_fisica': true,
+    'examenes_previos': true,
+    'diagnosticos': true,
+    'plan_y_tratamiento': true,
+    'adjuntos': true,
   })
 
   const [images, setImages] = useState<File[]>([])
