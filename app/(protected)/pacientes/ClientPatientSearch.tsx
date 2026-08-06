@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { db, type CachedPatient, type PendingPatient } from '@/lib/db/localDb'
 import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus'
@@ -16,6 +17,7 @@ function getSupabase() {
 }
 
 export default function ClientPatientSearch({ doctorId }: { doctorId: string }) {
+  const router = useRouter()
   const isOnline = useOnlineStatus()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<(CachedPatient | PendingPatient)[]>([])
@@ -30,12 +32,6 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
-    // Si la búsqueda está vacía, mostramos vacio
-    if (!query.trim()) {
-      setResults([])
-      return
-    }
-
     if (debounceTimeout.current) clearTimeout(debounceTimeout.current)
 
     debounceTimeout.current = setTimeout(() => {
@@ -57,23 +53,38 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
     if (isOnline) {
       try {
         const supabase = getSupabase()
-        // Intentar consulta con timeout manual para resiliencia
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-        // Usamos el RPC para ignorar acentos y mayúsculas
-        const { data, error } = await supabase.rpc('search_patients', {
-          search_query: searchTerm,
-        }).abortSignal(controller.signal)
-        
+        // Si hay término de búsqueda usamos RPC, si está vacío consultamos todos los pacientes del médico
+        let resData: any = null
+        let resError: any = null
+
+        if (searchTerm) {
+          const { data, error } = await supabase.rpc('search_patients', {
+            search_query: searchTerm,
+          }).abortSignal(controller.signal)
+          resData = data
+          resError = error
+        } else {
+          const { data, error } = await supabase
+            .from('patients')
+            .select('*')
+            .eq('doctor_id', doctorId)
+            .order('full_name', { ascending: true })
+            .abortSignal(controller.signal)
+          resData = data
+          resError = error
+        }
+
         clearTimeout(timeoutId)
 
-        if (error) throw error
+        if (resError) throw resError
         
         searchedOnline = true
-        onlineResults = data || []
+        onlineResults = resData || []
         
-        // Cachear resultados encontrados
+        // Cachear resultados encontrados en IndexedDB (Dexie)
         if (onlineResults.length > 0) {
           const toCache: CachedPatient[] = onlineResults.map(r => ({
             id: r.id,
@@ -94,8 +105,6 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
     if (!searchedOnline) {
       // Búsqueda offline en Dexie (cached + pending)
       const termLower = searchTerm.toLowerCase()
-      
-      // Función simple para quitar acentos básicos en JS para la búsqueda local
       const removeAccents = (str: string) => 
         str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       
@@ -103,6 +112,7 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
 
       const filterFn = (p: CachedPatient | PendingPatient) => {
         if (p.doctor_id !== doctorId) return false
+        if (!termNoAccents) return true // Si no hay término, devuelve todos los del médico
         const nameNoAccents = removeAccents(p.full_name.toLowerCase())
         return nameNoAccents.includes(termNoAccents)
       }
@@ -119,8 +129,7 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
       
       onlineResults = unique
     } else {
-      // Aún si fue online, necesitamos incluir los pending_patients locales 
-      // que no han subido a Supabase pero que coinciden con la búsqueda.
+      // Aún si fue online, necesitamos incluir los pending_patients locales
       const termLower = searchTerm.toLowerCase()
       const removeAccents = (str: string) => 
         str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -128,16 +137,15 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
 
       const pending = await db.pending_patients.filter((p) => {
         if (p.doctor_id !== doctorId) return false
+        if (!termNoAccents) return true
         const nameNoAccents = removeAccents(p.full_name.toLowerCase())
         return nameNoAccents.includes(termNoAccents)
       }).toArray()
 
-      // Evitar duplicados si por alguna rareza ya está en ambos lados
       const existingIds = new Set(onlineResults.map(p => p.id))
       const pendingToAdd = pending.filter(p => !existingIds.has(p.id))
       
       onlineResults = [...pendingToAdd, ...onlineResults]
-      // Ordenar
       onlineResults.sort((a, b) => a.full_name.localeCompare(b.full_name))
     }
 
@@ -153,11 +161,9 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
     setIsCreating(true)
     setErrorMsg('')
     
-    // Generar ID local siempre (crypto.randomUUID() soportado en navegadores modernos)
     const newId = crypto.randomUUID()
     const now = new Date().toISOString()
     
-    // Objeto genérico para enviar a Supabase
     const newPatientData = {
       id: newId,
       doctor_id: doctorId,
@@ -173,7 +179,6 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
         const { error } = await supabase.from('patients').insert(newPatientData)
         if (error) throw error
         
-        // Guardar en caché si tuvo éxito
         const cachedPatient: CachedPatient = {
           ...newPatientData,
           cached_at: now
@@ -186,7 +191,6 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
     }
 
     if (!createdOnline) {
-      // Guardar como pendiente si estamos offline o falló la inserción
       await db.pending_patients.put({
         id: newId,
         doctor_id: doctorId,
@@ -199,19 +203,9 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
     setIsCreating(false)
     setShowNewModal(false)
     setNewPatientName('')
-    
-    // Disparar búsqueda de nuevo si hay query, o mostrar el nuevo si no
-    if (query) {
-      performSearch(query)
-    } else {
-      setResults([{
-        id: newId,
-        doctor_id: doctorId,
-        full_name: name,
-        created_at: now,
-        cached_at: now
-      } as CachedPatient])
-    }
+
+    // Redirigir directamente al nuevo paciente para iniciar expediente
+    router.push(`/pacientes/${newId}`)
   }
 
   return (
@@ -249,51 +243,67 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
         </button>
       </div>
 
-      {/* Resultados */}
-      {query.trim().length > 0 && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-          {results.length > 0 ? (
-            <ul className="divide-y divide-slate-800/50">
-              {results.map((patient) => (
-                <li key={patient.id}>
-                  <Link
-                    href={`/pacientes/${patient.id}`}
-                    className="flex items-center px-4 py-4 hover:bg-slate-800/50 transition-colors group"
-                  >
-                    <div className="flex-shrink-0 mr-4">
-                      <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20 group-hover:bg-blue-500/20 transition-colors">
-                        <User className="w-5 h-5 text-blue-400" />
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-200 truncate">
-                        {patient.full_name}
-                      </p>
-                      {/* Check if it's pending by looking it up in dexie? Actually we can't tell easily unless we add a flag, but this is fine. */}
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            !isSearching && (
-              <div className="px-4 py-12 text-center">
-                <p className="text-sm text-slate-400 mb-4">No se encontraron pacientes con "{query}"</p>
-                <button
-                  onClick={() => {
-                    setNewPatientName(query)
-                    setShowNewModal(true)
-                  }}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-slate-900 transition-colors"
+      {/* Resultados y lista general */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        {results.length > 0 ? (
+          <ul className="divide-y divide-slate-800/50">
+            {results.map((patient) => (
+              <li key={patient.id}>
+                <Link
+                  href={`/pacientes/${patient.id}`}
+                  className="flex items-center px-4 py-4 hover:bg-slate-800/50 transition-colors group"
                 >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Registrar como nuevo paciente
-                </button>
-              </div>
-            )
-          )}
-        </div>
-      )}
+                  <div className="flex-shrink-0 mr-4">
+                    <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20 group-hover:bg-blue-500/20 transition-colors">
+                      <User className="w-5 h-5 text-blue-400" />
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-200 truncate">
+                      {patient.full_name}
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          !isSearching && (
+            <div className="px-4 py-12 text-center">
+              {query.trim().length > 0 ? (
+                <>
+                  <p className="text-sm text-slate-400 mb-4">No se encontraron pacientes con "{query}"</p>
+                  <button
+                    onClick={() => {
+                      setNewPatientName(query)
+                      setShowNewModal(true)
+                    }}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-slate-900 transition-colors"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Registrar "{query}" como nuevo paciente
+                  </button>
+                </>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <User className="w-12 h-12 text-slate-600 mb-3" />
+                  <p className="text-sm text-slate-400 mb-4">Aún no tienes pacientes registrados.</p>
+                  <button
+                    onClick={() => {
+                      setNewPatientName('')
+                      setShowNewModal(true)
+                    }}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-500 transition-colors"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Registrar tu primer paciente
+                  </button>
+                </div>
+              )}
+            </div>
+          )
+        )}
+      </div>
 
       {/* Modal de Nuevo Paciente */}
       {showNewModal && (
