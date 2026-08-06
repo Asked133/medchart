@@ -57,11 +57,11 @@ export async function proxy(request: NextRequest) {
       .from('profiles')
       .select('must_change_password, is_active')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     const profile = profileData as { must_change_password: boolean; is_active: boolean } | null
     const isActive = profile?.is_active ?? true
-    const mustChangePassword = profile?.must_change_password ?? false
+    const mustChangePassword = profile?.must_change_password ?? true
 
     // 1. Prioridad Absoluta: Cuenta Desactivada
     if (!isActive) {

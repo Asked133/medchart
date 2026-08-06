@@ -34,6 +34,12 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now()
 );
 
+-- Asegurar columnas para instalaciones previas que no las tenían
+alter table public.profiles add column if not exists must_change_password boolean not null default true;
+alter table public.profiles add column if not exists is_active boolean not null default true;
+alter table public.profiles add column if not exists is_founder_account boolean not null default false;
+
+
 -- Pacientes
 create table if not exists public.patients (
   id uuid primary key default gen_random_uuid(),

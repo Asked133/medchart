@@ -216,23 +216,37 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
 
   return (
     <div className="space-y-6">
-      {/* Barra de búsqueda */}
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-slate-400" />
-        </div>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar paciente por nombre..."
-          className="block w-full pl-10 pr-3 py-3 border border-slate-700 rounded-xl leading-5 bg-slate-800/50 text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
-        />
-        {isSearching && (
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+      {/* Barra de búsqueda y botón de nuevo paciente */}
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+        <div className="relative flex-1">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-slate-400" />
           </div>
-        )}
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar paciente por nombre..."
+            className="block w-full pl-10 pr-3 py-3 border border-slate-700 rounded-xl leading-5 bg-slate-800/50 text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
+          />
+          {isSearching && (
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+            </div>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setNewPatientName(query.trim())
+            setShowNewModal(true)
+          }}
+          className="inline-flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-slate-900 transition-colors whitespace-nowrap shrink-0"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Nuevo Paciente
+        </button>
       </div>
 
       {/* Resultados */}
