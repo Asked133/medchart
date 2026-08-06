@@ -155,20 +155,33 @@ export async function changePassword(
     return { error: 'No se pudo actualizar la contraseña. Inténtalo de nuevo.' }
   }
 
-  // 2. Desmarca el flag obligatorio en el perfil del usuario (upsert para cubrir usuarios viejos sin perfil)
-  const { error: updateProfileError } = await (supabase
+  // 2. Desmarca el flag obligatorio en el perfil del usuario
+  const { error: updateError } = await (supabase
     .from('profiles') as any)
-    .upsert({
-      id: user.id,
-      full_name: user.user_metadata?.full_name || 'Dr. / Dra.',
-      medical_license: user.user_metadata?.medical_license || 'Pendiente',
-      specialty_title: user.user_metadata?.specialty_title || 'Medicina General',
-      must_change_password: false,
-      is_active: true
-    })
+    .update({ must_change_password: false })
+    .eq('id', user.id)
 
-  if (updateProfileError) {
-    return { error: 'Error al actualizar el perfil. Inténtalo de nuevo.' }
+  if (updateError) {
+    console.error('[changePassword] Error al actualizar perfil:', updateError)
+    
+    // Si falló porque la fila no existe, intentamos insertarla
+    const { error: insertError } = await (supabase
+      .from('profiles') as any)
+      .upsert({
+        id: user.id,
+        full_name: user.user_metadata?.full_name || 'Dr. / Dra.',
+        medical_license: user.user_metadata?.medical_license || 'Pendiente',
+        specialty_title: user.user_metadata?.specialty_title || 'Medicina General',
+        must_change_password: false,
+        is_active: true
+      })
+
+    if (insertError) {
+      console.error('[changePassword] Error al insertar perfil:', insertError)
+      return { 
+        error: insertError.message || updateError.message || 'Error al actualizar el perfil. Revisa la base de datos en Supabase.' 
+      }
+    }
   }
 
   revalidatePath('/', 'layout')
