@@ -11,6 +11,7 @@ import { saveClinicalDocument } from '@/lib/services/documentService'
 import SignosVitalesFields from '@/components/clinical/SignosVitalesFields'
 import ImageAttachmentUploader from '@/components/clinical/ImageAttachmentUploader'
 import ConfirmSaveModal from '@/components/clinical/ConfirmSaveModal'
+import DraftPromptModal from '@/components/clinical/DraftPromptModal'
 import { Save, WifiOff } from 'lucide-react'
 
 // ─── ESQUEMA ZOD NOTA DE EVOLUCIÓN ──────────────────────────────────────────
@@ -50,6 +51,9 @@ export default function NotaEvolucionForm({
   const [showConfirm, setShowConfirm] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [pendingDraft, setPendingDraft] = useState<{ data: any; savedAt: string } | null>(null)
+
+  const DRAFT_KEY = `medchart_draft_nota_${patientId}`
 
   const methods = useForm<FormData>({
     resolver: zodResolver(notaEvolucionSchema),
@@ -61,6 +65,7 @@ export default function NotaEvolucionForm({
     },
   })
 
+  // 1. Cargar paciente y verificar si hay borrador previo
   useEffect(() => {
     async function loadPatient() {
       let pat: CachedPatient | PendingPatient | null = initialPatient as CachedPatient | null
@@ -68,9 +73,52 @@ export default function NotaEvolucionForm({
         pat = await db.pending_patients.get(patientId) || await db.cached_patients.get(patientId) || null
       }
       if (pat) setPatient(pat)
+
+      try {
+        const savedDraft = localStorage.getItem(DRAFT_KEY)
+        if (savedDraft) {
+          const parsed = JSON.parse(savedDraft)
+          if (parsed?.data) {
+            setPendingDraft({
+              data: parsed.data,
+              savedAt: parsed.savedAt || 'recientemente'
+            })
+          }
+        }
+      } catch (err) {
+        console.warn('Error leyendo borrador de nota:', err)
+      }
     }
     loadPatient()
-  }, [patientId, initialPatient])
+  }, [patientId, initialPatient, methods, DRAFT_KEY])
+
+  // 2. Auto-guardar borrador de TEXTO en localStorage mientras se escribe
+  useEffect(() => {
+    const subscription = methods.watch((values) => {
+      if (!values) return
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({
+          data: values,
+          savedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }))
+      } catch (e) {}
+    })
+    return () => subscription.unsubscribe()
+  }, [methods.watch, DRAFT_KEY])
+
+  function handleContinueDraft() {
+    if (pendingDraft) {
+      methods.reset(pendingDraft.data)
+      setPendingDraft(null)
+    }
+  }
+
+  function handleStartFresh() {
+    try {
+      localStorage.removeItem(DRAFT_KEY)
+    } catch (e) {}
+    setPendingDraft(null)
+  }
 
   const onSubmit = () => {
     setShowConfirm(true)
@@ -91,6 +139,11 @@ export default function NotaEvolucionForm({
         images,
         isOnline,
       })
+
+      // Eliminar el borrador tras guardar con éxito
+      try {
+        localStorage.removeItem(DRAFT_KEY)
+      } catch (e) {}
 
       router.push(`/pacientes/${patientId}/documentos/${docId}`)
     } catch (error: any) {
@@ -190,6 +243,14 @@ export default function NotaEvolucionForm({
         errorMessage={saveError}
         onConfirm={handleConfirmSave}
         onCancel={() => setShowConfirm(false)}
+      />
+
+      {/* Modal de Pregunta de Borrador al Abrir la Vista */}
+      <DraftPromptModal
+        isOpen={!!pendingDraft}
+        formattedTime={pendingDraft?.savedAt || ''}
+        onContinue={handleContinueDraft}
+        onStartFresh={handleStartFresh}
       />
     </div>
   )

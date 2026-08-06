@@ -64,6 +64,15 @@ export interface CachedDocument {
   cached_at: string
 }
 
+export interface DraftDocument {
+  id: string            // Clave única: `${patient_id}_${document_type}`
+  patient_id: string
+  doctor_id: string
+  document_type: DocumentType
+  content: Record<string, unknown> // Únicamente texto de los campos
+  updated_at: string     // ISO string
+}
+
 // ─── Clase de base de datos ──────────────────────────────────────────────────
 
 class MedChartDb extends Dexie {
@@ -72,19 +81,28 @@ class MedChartDb extends Dexie {
   pending_attachments!: EntityTable<PendingAttachment, 'id'>
   cached_patients!: EntityTable<CachedPatient, 'id'>
   cached_documents!: EntityTable<CachedDocument, 'id'>
+  draft_documents!: EntityTable<DraftDocument, 'id'>
 
   constructor() {
     super('medchart_db')
 
     // Versión 1 — esquema inicial.
-    // Al agregar tablas o índices nuevos: incrementa la versión y agrega .upgrade() si es necesario.
-    // NUNCA modifiques una versión ya publicada — solo añade versiones nuevas.
     this.version(1).stores({
       pending_patients:    '&id, doctor_id, sync_status, created_at_local',
       pending_documents:   '&id, patient_id, doctor_id, sync_status, created_at_local',
       pending_attachments: '&id, document_id, doctor_id, sync_status',
       cached_patients:     '&id, doctor_id, full_name, cached_at',
       cached_documents:    '&id, patient_id, doctor_id, document_date, cached_at',
+    })
+
+    // Versión 2 — añade tabla de borradores (draft_documents)
+    this.version(2).stores({
+      pending_patients:    '&id, doctor_id, sync_status, created_at_local',
+      pending_documents:   '&id, patient_id, doctor_id, sync_status, created_at_local',
+      pending_attachments: '&id, document_id, doctor_id, sync_status',
+      cached_patients:     '&id, doctor_id, full_name, cached_at',
+      cached_documents:    '&id, patient_id, doctor_id, document_date, cached_at',
+      draft_documents:     '&id, patient_id, doctor_id, document_type, updated_at',
     })
   }
 }
