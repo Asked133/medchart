@@ -87,11 +87,22 @@ alter table public.patients enable row level security;
 alter table public.clinical_documents enable row level security;
 alter table public.document_attachments enable row level security;
 
--- Otorgar permisos de tabla a los roles de Supabase
-grant all on table public.profiles to authenticated, service_role, anon;
-grant all on table public.patients to authenticated, service_role, anon;
-grant all on table public.clinical_documents to authenticated, service_role, anon;
-grant all on table public.document_attachments to authenticated, service_role, anon;
+-- Otorgar permisos estricto de tabla: 'authenticated' solo sus operaciones, 'anon' sin acceso
+grant select, insert, update on table public.profiles to authenticated;
+grant all on table public.profiles to service_role;
+revoke all on table public.profiles from anon;
+
+grant select, insert, update on table public.patients to authenticated;
+grant all on table public.patients to service_role;
+revoke all on table public.patients from anon;
+
+grant select, insert, update on table public.clinical_documents to authenticated;
+grant all on table public.clinical_documents to service_role;
+revoke all on table public.clinical_documents from anon;
+
+grant select, insert, update on table public.document_attachments to authenticated;
+grant all on table public.document_attachments to service_role;
+revoke all on table public.document_attachments from anon;
 
 -- 5. Políticas de Seguridad RLS
 

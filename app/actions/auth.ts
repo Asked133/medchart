@@ -127,8 +127,8 @@ export async function changePassword(
   formData: FormData
 ): Promise<ChangePasswordState> {
   const raw = {
-    password: formData.get('password') as string,
-    confirmPassword: formData.get('confirmPassword') as string,
+    password: ((formData.get('password') as string) || '').trim(),
+    confirmPassword: ((formData.get('confirmPassword') as string) || '').trim(),
   }
 
   const parsed = changePasswordSchema.safeParse(raw)

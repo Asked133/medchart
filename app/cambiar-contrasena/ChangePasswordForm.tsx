@@ -1,14 +1,18 @@
 'use client'
 
+import { useState } from 'react'
 import { useActionState } from 'react'
 import { changePassword, type ChangePasswordState } from '@/app/actions/auth'
-import { AlertCircle, KeyRound, Lock, ShieldCheck, Stethoscope } from 'lucide-react'
+import { AlertCircle, Eye, EyeOff, KeyRound, Lock, ShieldCheck, Stethoscope } from 'lucide-react'
 
 export default function ChangePasswordForm() {
   const [state, action, pending] = useActionState<ChangePasswordState, FormData>(
     changePassword,
     null
   )
+
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4 relative overflow-hidden select-none">
@@ -74,12 +78,12 @@ export default function ChangePasswordForm() {
                   <input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     autoComplete="new-password"
                     required
                     placeholder="••••••••"
                     className={`
-                      w-full pl-11 pr-4 py-3.5 rounded-xl text-sm font-medium text-white placeholder:text-slate-400
+                      w-full pl-11 pr-12 py-3.5 rounded-xl text-sm font-medium text-white placeholder:text-slate-400
                       bg-slate-950 border-2 transition-all duration-200 shadow-md
                       focus:outline-none focus:ring-4 focus:ring-blue-500/25 focus:border-blue-400 focus:bg-slate-950
                       ${state?.fieldErrors?.password
@@ -88,6 +92,14 @@ export default function ChangePasswordForm() {
                       }
                     `}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
                 {state?.fieldErrors?.password?.map((e) => (
                   <p key={e} className="text-red-400 text-xs font-medium mt-1.5 flex items-center gap-1">
@@ -111,12 +123,12 @@ export default function ChangePasswordForm() {
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
-                    type="password"
+                    type={showConfirmPassword ? 'text' : 'password'}
                     autoComplete="new-password"
                     required
                     placeholder="••••••••"
                     className={`
-                      w-full pl-11 pr-4 py-3.5 rounded-xl text-sm font-medium text-white placeholder:text-slate-400
+                      w-full pl-11 pr-12 py-3.5 rounded-xl text-sm font-medium text-white placeholder:text-slate-400
                       bg-slate-950 border-2 transition-all duration-200 shadow-md
                       focus:outline-none focus:ring-4 focus:ring-blue-500/25 focus:border-blue-400 focus:bg-slate-950
                       ${state?.fieldErrors?.confirmPassword
@@ -125,6 +137,14 @@ export default function ChangePasswordForm() {
                       }
                     `}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
                 {state?.fieldErrors?.confirmPassword?.map((e) => (
                   <p key={e} className="text-red-400 text-xs font-medium mt-1.5 flex items-center gap-1">
