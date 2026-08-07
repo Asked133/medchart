@@ -38,17 +38,17 @@ export default function ImageAttachmentUploader({ images, onChange }: ImageAttac
   }
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden p-5 space-y-4">
-      <h2 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">Imágenes adjuntas</h2>
+    <div className="bg-surface border border-border-subtle rounded-2xl overflow-hidden p-5 space-y-4 shadow-clinical-sm">
+      <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">Imágenes adjuntas</h2>
       
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         {previews.map((prev, i) => (
-          <div key={i} className="relative aspect-square bg-slate-800 rounded-lg border border-slate-700 overflow-hidden group">
+          <div key={i} className="relative aspect-square bg-background rounded-lg border border-border-strong overflow-hidden group shadow-clinical-sm">
             <img src={prev.url} alt={`Adjunto ${i + 1}`} className="w-full h-full object-cover" />
             <button
               type="button"
               onClick={() => handleRemove(i)}
-              className="absolute top-2 right-2 bg-slate-900/80 p-1.5 rounded-md text-red-400 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-slate-900"
+              className="absolute top-2 right-2 bg-surface/90 p-1.5 rounded-md text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-surface border border-border-subtle shadow-clinical-sm"
               title="Eliminar imagen"
             >
               <Trash2 className="w-4 h-4" />
@@ -56,13 +56,13 @@ export default function ImageAttachmentUploader({ images, onChange }: ImageAttac
           </div>
         ))}
         
-        <label className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-slate-700 rounded-lg hover:border-blue-500 hover:bg-slate-800/50 cursor-pointer transition-colors text-slate-400 hover:text-blue-400">
+        <label className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-border-strong rounded-lg hover:border-brand hover:bg-surface-hover cursor-pointer transition-colors text-foreground-muted hover:text-brand-text">
           <ImagePlus className="w-6 h-6 mb-2" />
           <span className="text-xs font-medium text-center px-2">Añadir foto</span>
           <input type="file" accept="image/*" multiple className="hidden" onChange={handleFileSelect} />
         </label>
       </div>
-      <p className="text-xs text-slate-500">Puedes subir múltiples imágenes. Serán comprimidas automáticamente antes de guardarse.</p>
+      <p className="text-xs text-foreground-muted">Puedes subir múltiples imágenes. Serán comprimidas automáticamente antes de guardarse.</p>
     </div>
   )
 }

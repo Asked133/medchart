@@ -66,36 +66,8 @@ html, body {
 /* ── SISTEMA DE TEMAS — Clinical BI ──────────────────────── */
 /* ─────────────────────────────────────────────────────────── */
 
-/* MODO OSCURO (Por defecto) */
-:root {
-  /* Fondos */
-  --theme-bg: #030712; /* gray-950 super oscuro */
-  --theme-surface: #0f172a; /* slate-900 elegante */
-  --theme-surface-hover: #1e293b;
-  --theme-surface-active: #334155;
-  
-  /* Texto */
-  --theme-text: #f8fafc;
-  --theme-text-muted: #94a3b8;
-  
-  /* Bordes */
-  --theme-border-subtle: rgba(255, 255, 255, 0.05); /* Hairline */
-  --theme-border-strong: rgba(255, 255, 255, 0.15);
-  
-  /* Acento (Teal/Zafiro Oscuro) */
-  --theme-brand: #0d9488; /* teal-600 */
-  --theme-brand-hover: #0f766e; /* teal-700 */
-  --theme-brand-muted: rgba(13, 148, 136, 0.15);
-  --theme-brand-text: #2dd4bf; /* teal-400 */
-
-  /* Sombras y UI */
-  --theme-shadow-color: rgba(0, 0, 0, 0.5);
-  --theme-scrollbar: rgba(255, 255, 255, 0.1);
-  --theme-scrollbar-hover: rgba(255, 255, 255, 0.2);
-}
-
-/* MODO CLARO */
-html.light {
+/* MODO CLARO (Por defecto por primera vez) */
+:root, html.light {
   color-scheme: light;
   
   /* Fondos */
@@ -122,6 +94,36 @@ html.light {
   --theme-shadow-color: rgba(15, 23, 42, 0.06); /* Sombra elegante de BI */
   --theme-scrollbar: rgba(0, 0, 0, 0.15);
   --theme-scrollbar-hover: rgba(0, 0, 0, 0.25);
+}
+
+/* MODO OSCURO */
+html.dark {
+  color-scheme: dark;
+
+  /* Fondos */
+  --theme-bg: #030712; /* gray-950 super oscuro */
+  --theme-surface: #0f172a; /* slate-900 elegante */
+  --theme-surface-hover: #1e293b;
+  --theme-surface-active: #334155;
+  
+  /* Texto */
+  --theme-text: #f8fafc;
+  --theme-text-muted: #94a3b8;
+  
+  /* Bordes */
+  --theme-border-subtle: rgba(255, 255, 255, 0.05); /* Hairline */
+  --theme-border-strong: rgba(255, 255, 255, 0.15);
+  
+  /* Acento (Teal/Zafiro Oscuro) */
+  --theme-brand: #0d9488; /* teal-600 */
+  --theme-brand-hover: #0f766e; /* teal-700 */
+  --theme-brand-muted: rgba(13, 148, 136, 0.15);
+  --theme-brand-text: #2dd4bf; /* teal-400 */
+
+  /* Sombras y UI */
+  --theme-shadow-color: rgba(0, 0, 0, 0.5);
+  --theme-scrollbar: rgba(255, 255, 255, 0.1);
+  --theme-scrollbar-hover: rgba(255, 255, 255, 0.2);
 }
 
 /* ── Aplicar variables base al cuerpo de la app ───────────── */

@@ -5,17 +5,16 @@ import { useState, useEffect } from 'react'
 export type Theme = 'dark' | 'light'
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>('dark')
+  const [theme, setTheme] = useState<Theme>('light')
 
   useEffect(() => {
-    // Leer preferencia guardada o preferencia del sistema
+    // Leer preferencia guardada o abrir en blanco (light) por primera vez
     const savedTheme = localStorage.getItem('medchart_theme') as Theme | null
     if (savedTheme === 'light' || savedTheme === 'dark') {
       setTheme(savedTheme)
       applyTheme(savedTheme)
     } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      const initial = prefersDark ? 'dark' : 'light'
+      const initial: Theme = 'light'
       setTheme(initial)
       applyTheme(initial)
     }
