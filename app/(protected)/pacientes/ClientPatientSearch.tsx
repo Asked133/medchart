@@ -2,19 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createBrowserClient } from '@supabase/ssr'
+import { getBrowserSupabase } from '@/lib/supabase/browser'
 import { db, type CachedPatient, type PendingPatient } from '@/lib/db/localDb'
 import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus'
 import Link from 'next/link'
 import { Search, Plus, User, AlertCircle, WifiOff } from 'lucide-react'
-
-// Necesitamos definir el cliente de supabase aquí para usar el RPC.
-function getSupabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-}
 
 export default function ClientPatientSearch({ doctorId }: { doctorId: string }) {
   const router = useRouter()
@@ -76,7 +68,7 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
 
     if (isOnline) {
       try {
-        const supabase = getSupabase()
+        const supabase = getBrowserSupabase()
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 5000)
 
@@ -193,7 +185,7 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
 
     if (isOnline) {
       try {
-        const supabase = getSupabase()
+        const supabase = getBrowserSupabase()
         const { error } = await supabase.from('patients').insert(newPatientData)
         if (error) throw error
         

@@ -1,24 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
 import { db, type CachedPatient, type PendingPatient, type CachedDocument } from '@/lib/db/localDb'
 import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus'
 import { ArrowLeft, Clock, FileText, Image as ImageIcon, CheckCircle2, X } from 'lucide-react'
 import Link from 'next/link'
-
-function getSupabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-}
+import { getBrowserSupabase } from '@/lib/supabase/browser'
 
 const LABELS: Record<string, string> = {
   // Nota de Evolución — formato SOAP (nuevo, NOM-004 § 6.2)
   subjetivo: 'S — Subjetivo',
   objetivo: 'O — Objetivo',
   analisis: 'A — Análisis',
+  indicaciones: 'I — Indicaciones Médicas',
   plan: 'P — Plan',
   // Nota de Evolución — formato heredado (compatibilidad con documentos existentes)
   padecimiento_actual: 'Padecimiento Actual',
@@ -38,7 +32,9 @@ const LABELS: Record<string, string> = {
   tension_arterial: 'Tensión arterial',
   saturacion: 'Saturación',
 
-  // Historia Clínica specific
+  // Historia Clínica — Ficha de Identificación
+  grupo_sanguineo: 'Grupo sanguíneo y RH',
+  pronostico: 'Pronóstico',
   ficha_identificacion: 'Ficha de Identificación',
   nombre_completo: 'Nombre completo',
   fecha_nacimiento: 'Fecha de nacimiento',
@@ -205,7 +201,7 @@ export default function DocumentView({
           }))
         } else if (initialAttachments && initialAttachments.length > 0 && isOnline) {
           // Obtener URLs firmadas de Supabase Storage
-          const supabase = getSupabase()
+          const supabase = getBrowserSupabase()
           const urls = await Promise.all(initialAttachments.map(async (att) => {
             const { data } = await supabase.storage.from('clinical-attachments').createSignedUrl(att.storage_path, 3600)
             return {
@@ -308,7 +304,13 @@ export default function DocumentView({
   // Soporta ambos formatos:
   //   • SOAP nuevo (subjetivo, objetivo, analisis, plan) — NOM-004 § 6.2
   //   • Formato heredado (padecimiento_actual, exploracion_fisica, plan_y_tratamiento, estudios)
-  const isSoapFormat = !!(content.subjetivo !== undefined || content.objetivo !== undefined || content.analisis !== undefined || content.plan !== undefined)
+  const isSoapFormat = !!(
+    content.subjetivo !== undefined ||
+    content.objetivo !== undefined ||
+    content.analisis !== undefined ||
+    content.indicaciones !== undefined ||
+    content.plan !== undefined
+  )
 
   const renderNotaEvolucionContent = () => (
     <>
@@ -319,6 +321,7 @@ export default function DocumentView({
           {renderTextBlock('objetivo', 'O — Objetivo', content.objetivo)}
           {renderSignosVitalesBlock(content.signos_vitales)}
           {renderTextBlock('analisis', 'A — Análisis', content.analisis)}
+          {renderTextBlock('indicaciones', 'I — Indicaciones Médicas', content.indicaciones)}
           {renderTextBlock('plan', 'P — Plan', content.plan)}
         </>
       ) : (
@@ -360,6 +363,7 @@ export default function DocumentView({
         {renderTextBlock('examenes_previos', 'Exámenes Previos', content.examenes_previos)}
         {renderTextBlock('diagnosticos', 'Diagnósticos', content.diagnosticos)}
         {renderTextBlock('plan_y_tratamiento', 'Plan y Tratamiento', content.plan_y_tratamiento)}
+        {renderTextBlock('pronostico', 'Pronóstico', content.pronostico)}
       </>
     )
   }

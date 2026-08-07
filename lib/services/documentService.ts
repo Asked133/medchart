@@ -1,14 +1,7 @@
-import { createBrowserClient } from '@supabase/ssr'
+import { getBrowserSupabase } from '@/lib/supabase/browser'
 import imageCompression from 'browser-image-compression'
 import { db } from '@/lib/db/localDb'
 import type { DocumentType } from '@/lib/supabase/database.types'
-
-function getSupabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-}
 
 export interface SaveDocumentOptions {
   patientId: string
@@ -62,7 +55,7 @@ export async function saveClinicalDocument({
   // 2. Intentar guardar en Supabase si estamos online
   if (isOnline) {
     try {
-      const supabase = getSupabase()
+      const supabase = getBrowserSupabase()
 
       if (dob) {
         const { error: dobError } = await supabase.from('patients').update({ date_of_birth: dob }).eq('id', patientId)

@@ -1,18 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { getBrowserSupabase } from '@/lib/supabase/browser'
 import { db, type CachedPatient, type PendingPatient, type CachedDocument, type PendingDocument } from '@/lib/db/localDb'
 import { useOnlineStatus } from '@/lib/hooks/useOnlineStatus'
 import Link from 'next/link'
 import { FileText, Plus, AlertCircle, Clock, ChevronRight, FileHeart } from 'lucide-react'
-
-function getSupabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-}
 
 // Interfaz unificada para la vista
 type UnifiedDocument = {
@@ -61,7 +54,7 @@ export default function ClientPatientDetail({
 
     if (isOnline) {
       try {
-        const supabase = getSupabase()
+        const supabase = getBrowserSupabase()
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 5000)
 

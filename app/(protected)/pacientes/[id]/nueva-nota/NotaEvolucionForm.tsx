@@ -12,7 +12,9 @@ import SignosVitalesFields from '@/components/clinical/SignosVitalesFields'
 import ImageAttachmentUploader from '@/components/clinical/ImageAttachmentUploader'
 import ConfirmSaveModal from '@/components/clinical/ConfirmSaveModal'
 import DraftPromptModal from '@/components/clinical/DraftPromptModal'
-import { Save, WifiOff } from 'lucide-react'
+import { Save, WifiOff, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import { FormTextArea } from '@/components/clinical/FormFields'
 
 // ─── ESQUEMA ZOD NOTA DE EVOLUCIÓN (NOM-004 § 6.2 — Formato SOAP) ───────────
 const notaEvolucionSchema = z.object({
@@ -32,7 +34,9 @@ const notaEvolucionSchema = z.object({
   }),
   // A — Análisis: diagnóstico y razonamiento clínico
   analisis: z.string().optional(),
-  // P — Plan: tratamiento, indicaciones, estudios solicitados
+  // I — Indicaciones médicas (dieta, medicamentos, cuidados, próxima cita)
+  indicaciones: z.string().optional(),
+  // P — Plan: tratamiento general y estudios solicitados
   plan: z.string().optional(),
 })
 
@@ -66,6 +70,7 @@ export default function NotaEvolucionForm({
       subjetivo: '',
       objetivo: '',
       analisis: '',
+      indicaciones: '',
       plan: '',
     },
   })
@@ -180,11 +185,15 @@ export default function NotaEvolucionForm({
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-20">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Nueva Nota de Evolución</h1>
-          <p className="text-slate-400 text-sm mt-1">{patient.full_name}</p>
-        </div>
+      {/* V4 — Botón Regresar */}
+      <div className="flex items-center justify-between">
+        <Link
+          href={`/pacientes/${patientId}`}
+          className="flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Volver al expediente
+        </Link>
         {!isOnline && (
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
             <WifiOff className="w-3 h-3" /> Offline Mode
@@ -192,11 +201,16 @@ export default function NotaEvolucionForm({
         )}
       </div>
 
+      <div>
+        <h1 className="text-2xl font-bold text-white">Nueva Nota de Evolución</h1>
+        <p className="text-slate-400 text-sm mt-1">{patient.full_name}</p>
+      </div>
+
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
           
           {/* S — Subjetivo */}
-          <TextArea
+          <FormTextArea
             name="subjetivo"
             label="S — Subjetivo"
             placeholder="Motivo de consulta y síntomas referidos por el paciente..."
@@ -204,7 +218,7 @@ export default function NotaEvolucionForm({
           />
 
           {/* O — Objetivo: Exploración física + signos vitales */}
-          <TextArea
+          <FormTextArea
             name="objetivo"
             label="O — Objetivo"
             placeholder="Hallazgos de la exploración física..."
@@ -217,22 +231,31 @@ export default function NotaEvolucionForm({
           </div>
 
           {/* A — Análisis */}
-          <TextArea
+          <FormTextArea
             name="analisis"
             label="A — Análisis"
             placeholder="Diagnóstico y razonamiento clínico..."
             rows={4}
           />
 
+          {/* I — Indicaciones Médicas (N5) */}
+          <FormTextArea
+            name="indicaciones"
+            label="I — Indicaciones Médicas"
+            placeholder="Dieta, medicamentos, dosis, cuidados en casa, próxima cita..."
+            rows={4}
+          />
+
           {/* P — Plan */}
-          <TextArea
+          <FormTextArea
             name="plan"
             label="P — Plan"
-            placeholder="Plan terapéutico, indicaciones médicas y estudios solicitados..."
-            rows={5}
+            placeholder="Plan terapéutico general y estudios solicitados..."
+            rows={4}
           />
 
           {/* Componente Reutilizable de Imágenes */}
+
           <ImageAttachmentUploader images={images} onChange={setImages} />
 
           {/* Botón Guardar */}
