@@ -8,16 +8,15 @@ export function useTheme() {
   const [theme, setTheme] = useState<Theme>('light')
 
   useEffect(() => {
-    // Leer preferencia guardada o abrir en blanco (light) por primera vez
-    const savedTheme = localStorage.getItem('medchart_theme') as Theme | null
-    if (savedTheme === 'light' || savedTheme === 'dark') {
-      setTheme(savedTheme)
-      applyTheme(savedTheme)
-    } else {
-      const initial: Theme = 'light'
-      setTheme(initial)
-      applyTheme(initial)
+    // Usar la clave v2 para asegurar que abra en Modo Claro (Luz) la primera vez
+    let savedTheme = localStorage.getItem('medchart_theme_v2') as Theme | null
+    if (!savedTheme) {
+      savedTheme = 'light'
+      localStorage.setItem('medchart_theme_v2', 'light')
     }
+
+    setTheme(savedTheme)
+    applyTheme(savedTheme)
   }, [])
 
   function applyTheme(newTheme: Theme) {
@@ -36,7 +35,7 @@ export function useTheme() {
   function toggleTheme() {
     const nextTheme: Theme = theme === 'dark' ? 'light' : 'dark'
     setTheme(nextTheme)
-    localStorage.setItem('medchart_theme', nextTheme)
+    localStorage.setItem('medchart_theme_v2', nextTheme)
     applyTheme(nextTheme)
   }
 

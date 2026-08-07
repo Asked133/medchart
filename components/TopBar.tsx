@@ -58,14 +58,24 @@ export default function TopBar({ doctorName, specialtyTitle }: TopBarProps) {
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-2 rounded-xl bg-background hover:bg-surface-active text-foreground-muted hover:text-foreground border border-border-subtle transition-colors"
+            className="
+              flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium
+              bg-surface hover:bg-surface-hover border border-border-strong
+              text-foreground transition-all duration-200 shadow-clinical-sm
+            "
             title={theme === 'dark' ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'}
             aria-label="Alternar tema"
           >
             {theme === 'dark' ? (
-              <Sun className="w-4 h-4 text-amber-400" />
+              <>
+                <Sun className="w-4 h-4 text-amber-400 shrink-0" />
+                <span className="hidden sm:inline text-amber-300 font-semibold">Modo Claro</span>
+              </>
             ) : (
-              <Moon className="w-4 h-4 text-indigo-500" />
+              <>
+                <Moon className="w-4 h-4 text-brand-text shrink-0" />
+                <span className="hidden sm:inline text-foreground-muted font-medium">Modo Oscuro</span>
+              </>
             )}
           </button>
 
