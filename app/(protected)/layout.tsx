@@ -36,7 +36,7 @@ export default async function ProtectedLayout({
   const specialtyTitle = profile?.specialty_title ?? ''
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Barra superior fija */}
       <TopBar doctorName={doctorName} specialtyTitle={specialtyTitle} />
 

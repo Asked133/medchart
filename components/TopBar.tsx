@@ -40,14 +40,14 @@ export default function TopBar({ doctorName, specialtyTitle }: TopBarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-white/5 bg-slate-900/80 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b border-border-subtle bg-surface/80 backdrop-blur-md">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
         {/* Logo */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center">
-            <Stethoscope className="w-4 h-4 text-blue-300" />
+          <div className="w-8 h-8 rounded-lg bg-brand-muted flex items-center justify-center border border-brand/20">
+            <Stethoscope className="w-4 h-4 text-brand-text" />
           </div>
-          <span className="font-semibold text-white text-sm tracking-tight hidden sm:block">
+          <span className="font-semibold text-foreground text-sm tracking-tight hidden sm:block">
             MedChart
           </span>
         </div>
@@ -58,7 +58,7 @@ export default function TopBar({ doctorName, specialtyTitle }: TopBarProps) {
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white border border-slate-700/60 transition-colors"
+            className="p-2 rounded-xl bg-background hover:bg-surface-active text-foreground-muted hover:text-foreground border border-border-subtle transition-colors"
             title={theme === 'dark' ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'}
             aria-label="Alternar tema"
           >
@@ -96,35 +96,35 @@ export default function TopBar({ doctorName, specialtyTitle }: TopBarProps) {
               onClick={() => setMenuOpen(!menuOpen)}
               className="
                 flex items-center gap-2 px-3 py-1.5 rounded-xl
-                text-slate-300 hover:text-white hover:bg-white/5
-                border border-transparent hover:border-white/10
+                text-foreground-muted hover:text-foreground hover:bg-surface-hover
+                border border-transparent hover:border-border-subtle
                 transition-all duration-200 text-sm
               "
             >
-              <div className="w-7 h-7 rounded-full bg-blue-500/30 border border-blue-400/30 flex items-center justify-center text-blue-300 text-xs font-semibold">
+              <div className="w-7 h-7 rounded-full bg-brand/10 border border-brand/30 flex items-center justify-center text-brand-text text-xs font-semibold">
                 {doctorName.charAt(0).toUpperCase()}
               </div>
               <div className="hidden md:block text-left">
-                <div className="text-xs font-medium text-white leading-tight">{doctorName}</div>
-                <div className="text-[10px] text-slate-500 leading-tight">{specialtyTitle}</div>
+                <div className="text-xs font-medium text-foreground leading-tight">{doctorName}</div>
+                <div className="text-[10px] text-foreground-muted leading-tight">{specialtyTitle}</div>
               </div>
               <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Dropdown */}
             {menuOpen && (
-              <div className="user-menu-dropdown absolute right-0 top-full mt-2 w-48 bg-slate-800 border border-white/10 rounded-xl shadow-2xl shadow-black/50 py-1 z-50">
-                <div className="px-3 py-2 border-b border-white/5 md:hidden">
-                  <p className="text-xs font-medium text-white">{doctorName}</p>
-                  <p className="text-[10px] text-slate-500">{specialtyTitle}</p>
+              <div className="user-menu-dropdown absolute right-0 top-full mt-2 w-48 bg-surface border border-border-subtle rounded-xl shadow-clinical py-1 z-50">
+                <div className="px-3 py-2 border-b border-border-subtle md:hidden">
+                  <p className="text-xs font-medium text-foreground">{doctorName}</p>
+                  <p className="text-[10px] text-foreground-muted">{specialtyTitle}</p>
                 </div>
                 <button
                   id="btn-logout"
                   onClick={handleLogout}
                   disabled={isPending}
                   className="
-                    w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300
-                    hover:text-white hover:bg-white/5 transition-colors duration-150
+                    w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground-muted
+                    hover:text-foreground hover:bg-surface-hover transition-colors duration-150
                     disabled:opacity-50
                   "
                 >

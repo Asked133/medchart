@@ -169,19 +169,9 @@ export default function NotaEvolucionForm({
     }
   }
 
-  const TextArea = ({ name, label, rows = 4, placeholder = '' }: { name: any; label: string; rows?: number; placeholder?: string }) => (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-2">
-      <label className="block text-sm font-semibold text-slate-200 uppercase tracking-wide">{label}</label>
-      <textarea
-        {...methods.register(name)}
-        rows={rows}
-        placeholder={placeholder}
-        className="block w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-800/50 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm"
-      />
-    </div>
-  )
+  // Unused local TextArea component was removed in previous steps in favor of FormTextArea
 
-  if (!patient) return <div className="text-center py-10 text-slate-400">Cargando paciente...</div>
+  if (!patient) return <div className="text-center py-10 text-foreground-muted">Cargando paciente...</div>
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-20">
@@ -202,8 +192,8 @@ export default function NotaEvolucionForm({
       </div>
 
       <div>
-        <h1 className="text-2xl font-bold text-white">Nueva Nota de Evolución</h1>
-        <p className="text-slate-400 text-sm mt-1">{patient.full_name}</p>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Nueva Nota de Evolución</h1>
+        <p className="text-foreground-muted text-sm mt-1">{patient.full_name}</p>
       </div>
 
       <FormProvider {...methods}>
@@ -226,7 +216,7 @@ export default function NotaEvolucionForm({
           />
 
           {/* Signos Vitales (Sub-componente reutilizable) */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <div className="bg-surface border border-border-subtle rounded-2xl p-5 shadow-clinical-sm">
             <SignosVitalesFields prefix="signos_vitales" />
           </div>
 
@@ -262,7 +252,7 @@ export default function NotaEvolucionForm({
           <div className="sticky bottom-4 mt-8 flex justify-end">
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-medium shadow-lg shadow-blue-900/20 flex items-center gap-2 transition-all"
+              className="bg-brand hover:bg-brand-hover text-white px-6 py-3 rounded-xl font-medium shadow-clinical-sm hover:shadow-clinical flex items-center gap-2 transition-all hover:-translate-y-0.5"
             >
               <Save className="w-5 h-5" />
               Guardar Nota de Evolución

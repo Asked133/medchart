@@ -10,8 +10,8 @@ import { useFormContext } from 'react-hook-form'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 
 const INPUT_CLASS =
-  'block w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-800/50 text-slate-200 ' +
-  'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm ' +
+  'block w-full px-3 py-2 border border-border-strong rounded-lg bg-surface text-foreground ' +
+  'focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand sm:text-sm ' +
   'transition-colors'
 
 // ─── TextInput ───────────────────────────────────────────────────────────────
@@ -20,11 +20,13 @@ export function FormTextInput({
   label,
   placeholder = '',
   required = false,
+  readOnly = false,
 }: {
   name: string
   label: string
   placeholder?: string
   required?: boolean
+  readOnly?: boolean
 }) {
   const { register, formState: { errors } } = useFormContext()
 
@@ -36,13 +38,14 @@ export function FormTextInput({
 
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-400 mb-1">
+      <label className="block text-xs font-medium text-foreground-muted mb-1">
         {label} {required && <span className="text-red-400">*</span>}
       </label>
       <input
         {...register(name)}
         placeholder={placeholder}
-        className={INPUT_CLASS}
+        readOnly={readOnly}
+        className={`${INPUT_CLASS} ${readOnly ? 'opacity-70 bg-surface-active cursor-not-allowed text-foreground-muted' : ''}`}
       />
       {error?.message && (
         <p className="text-red-400 text-xs mt-1">{error.message}</p>
@@ -66,7 +69,7 @@ export function FormTextArea({
   const { register } = useFormContext()
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-400 mb-1">{label}</label>
+      <label className="block text-xs font-medium text-foreground-muted mb-1">{label}</label>
       <textarea
         {...register(name)}
         rows={rows}
@@ -92,7 +95,7 @@ export function FormSelect({
   const { register } = useFormContext()
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-400 mb-1">
+      <label className="block text-xs font-medium text-foreground-muted mb-1">
         {label} {required && <span className="text-red-400">*</span>}
       </label>
       <select
@@ -125,20 +128,20 @@ export function FormSection({
   children: React.ReactNode
 }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-surface border border-border-subtle rounded-xl overflow-hidden shadow-clinical-sm">
       <button
         type="button"
         onClick={() => onToggle(id)}
-        className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-slate-800/40 transition-colors"
+        className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-surface-hover transition-colors"
       >
-        <span className="text-base font-semibold text-slate-200">{title}</span>
+        <span className="text-base font-semibold text-foreground tracking-tight">{title}</span>
         {isExpanded
-          ? <ChevronUp className="w-5 h-5 text-slate-400" />
-          : <ChevronDown className="w-5 h-5 text-slate-400" />
+          ? <ChevronUp className="w-5 h-5 text-foreground-muted" />
+          : <ChevronDown className="w-5 h-5 text-foreground-muted" />
         }
       </button>
       {isExpanded && (
-        <div className="p-5 border-t border-slate-800/50 space-y-4">
+        <div className="p-5 border-t border-border-subtle space-y-4 bg-background/30">
           {children}
         </div>
       )}
@@ -147,7 +150,7 @@ export function FormSection({
 }
 
 // ─── TextArea de Nota de Evolución (bloque SOAP con tarjeta) ─────────────────
-// Versión con card bg-slate-900 para NotaEvolucionForm
+// Versión con card bg-surface para NotaEvolucionForm
 export function SoapTextArea({
   name,
   label,
@@ -161,8 +164,8 @@ export function SoapTextArea({
 }) {
   const { register } = useFormContext()
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-2">
-      <label className="block text-sm font-semibold text-slate-200 uppercase tracking-wide">
+    <div className="bg-surface border border-border-subtle rounded-2xl p-5 space-y-2 shadow-clinical-sm">
+      <label className="block text-sm font-semibold text-foreground uppercase tracking-wide">
         {label}
       </label>
       <textarea

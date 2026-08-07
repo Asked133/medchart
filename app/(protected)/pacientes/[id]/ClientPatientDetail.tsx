@@ -1,3 +1,5 @@
+
+
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -128,10 +130,10 @@ export default function ClientPatientDetail({
   if (!patient && !isLoading) {
     return (
       <div className="text-center py-12">
-        <AlertCircle className="mx-auto h-12 w-12 text-slate-500 mb-4" />
-        <h3 className="text-lg font-medium text-slate-200">Paciente no encontrado</h3>
-        <p className="text-slate-400 mt-2">No pudimos cargar la información de este paciente.</p>
-        <Link href="/pacientes" className="mt-6 inline-block text-blue-400 hover:text-blue-300">
+        <AlertCircle className="mx-auto h-12 w-12 text-foreground-muted mb-4" />
+        <h3 className="text-lg font-medium text-foreground">Paciente no encontrado</h3>
+        <p className="text-foreground-muted mt-2">No pudimos cargar la información de este paciente.</p>
+        <Link href="/pacientes" className="mt-6 inline-block text-brand-text hover:text-brand-hover">
           Volver a búsqueda
         </Link>
       </div>
@@ -141,13 +143,13 @@ export default function ClientPatientDetail({
   return (
     <div className="space-y-6">
       {/* Cabecera del Paciente */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex items-start justify-between">
+      <div className="bg-surface border border-border-subtle rounded-2xl p-6 flex items-start justify-between shadow-clinical-sm">
         <div>
-          <h1 className="text-2xl font-bold text-white">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">
             {patient?.full_name || 'Cargando...'}
           </h1>
           {patient && (
-            <p className="text-slate-400 text-sm mt-1">
+            <p className="text-foreground-muted text-sm mt-1">
               ID: <span className="font-mono text-xs">{patient.id}</span>
             </p>
           )}
@@ -158,61 +160,57 @@ export default function ClientPatientDetail({
       <div className="flex gap-3 sm:flex-row flex-col">
         <Link
           href={`/pacientes/${patientId}/nueva-historia`}
-          className="flex-1 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/20 text-blue-300 rounded-xl p-4 flex items-center gap-3 transition-colors group"
+          className="flex-1 bg-surface hover:bg-surface-hover border border-border-subtle hover:border-border-strong rounded-xl p-4 flex items-center gap-3 transition-all duration-300 shadow-clinical-sm group hover:-translate-y-0.5"
         >
-          <div className="bg-blue-500/20 p-2 rounded-lg group-hover:bg-blue-500/30 transition-colors">
-            <FileHeart className="w-5 h-5 text-blue-400" />
+          <div className="bg-brand/10 p-2 rounded-lg group-hover:bg-brand/20 transition-colors border border-brand/20">
+            <FileHeart className="w-5 h-5 text-brand-text" />
           </div>
           <div className="text-left">
-            <div className="font-medium">Historia Clínica</div>
-            <div className="text-xs text-blue-400/70">Registrar historial completo</div>
+            <div className="font-medium text-foreground">Historia Clínica</div>
+            <div className="text-xs text-foreground-muted">Registrar historial completo</div>
           </div>
         </Link>
         <Link
           href={`/pacientes/${patientId}/nueva-nota`}
-          className="flex-1 bg-violet-600/10 hover:bg-violet-600/20 border border-violet-500/20 text-violet-300 rounded-xl p-4 flex items-center gap-3 transition-colors group"
+          className="flex-1 bg-surface hover:bg-surface-hover border border-border-subtle hover:border-border-strong rounded-xl p-4 flex items-center gap-3 transition-all duration-300 shadow-clinical-sm group hover:-translate-y-0.5"
         >
-          <div className="bg-violet-500/20 p-2 rounded-lg group-hover:bg-violet-500/30 transition-colors">
-            <FileText className="w-5 h-5 text-violet-400" />
+          <div className="bg-brand/10 p-2 rounded-lg group-hover:bg-brand/20 transition-colors border border-brand/20">
+            <FileText className="w-5 h-5 text-brand-text" />
           </div>
           <div className="text-left">
-            <div className="font-medium">Nota de Evolución</div>
-            <div className="text-xs text-violet-400/70">Capturar seguimiento</div>
+            <div className="font-medium text-foreground">Nota de Evolución</div>
+            <div className="text-xs text-foreground-muted">Capturar seguimiento</div>
           </div>
         </Link>
       </div>
 
       {/* Lista de Documentos */}
       <div>
-        <h2 className="text-lg font-medium text-slate-200 mb-4 flex items-center gap-2">
-          <FileText className="w-5 h-5 text-slate-400" />
+        <h2 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2 tracking-tight">
+          <FileText className="w-5 h-5 text-foreground-muted" />
           Historial de Documentos
         </h2>
 
         {isLoading ? (
           <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-text"></div>
           </div>
         ) : documents.length > 0 ? (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden divide-y divide-slate-800/50">
+          <div className="bg-surface border border-border-subtle rounded-2xl overflow-hidden divide-y divide-border-subtle shadow-clinical-sm">
             {documents.map((doc) => (
               <Link
                 key={doc.id}
                 href={`/pacientes/${patientId}/documentos/${doc.id}`}
-                className="block hover:bg-slate-800/50 transition-colors p-4 group"
+                className="block hover:bg-surface-hover transition-colors p-4 group"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className={`p-2 rounded-lg ${
-                      doc.type === 'historia_clinica' 
-                        ? 'bg-blue-500/10 text-blue-400' 
-                        : 'bg-violet-500/10 text-violet-400'
-                    }`}>
+                    <div className="p-2 rounded-lg bg-brand/10 border border-brand/20 text-brand-text group-hover:bg-brand/20 transition-colors">
                       {doc.type === 'historia_clinica' ? <FileHeart className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-slate-200">
+                        <span className="font-medium text-foreground group-hover:text-brand-text transition-colors">
                           {doc.type === 'historia_clinica' ? 'Historia Clínica' : 'Nota de Evolución'}
                         </span>
                         {doc.isPending && doc.sync_status === 'pending' && (
@@ -234,7 +232,7 @@ export default function ClientPatientDetail({
                           </span>
                         )}
                       </div>
-                      <div className="text-sm text-slate-400 mt-1">
+                      <div className="text-sm text-foreground-muted mt-1">
                         {new Date(doc.date).toLocaleDateString('es-MX', {
                           weekday: 'long',
                           year: 'numeric',
@@ -246,15 +244,15 @@ export default function ClientPatientDetail({
                       </div>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                  <ChevronRight className="w-5 h-5 text-foreground-muted group-hover:text-foreground transition-colors" />
                 </div>
               </Link>
             ))}
           </div>
         ) : (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
-            <FileText className="mx-auto h-10 w-10 text-slate-600 mb-3" />
-            <p className="text-slate-400">El paciente no tiene documentos clínicos registrados.</p>
+          <div className="bg-surface border border-border-subtle rounded-2xl p-12 text-center shadow-clinical-sm">
+            <FileText className="mx-auto h-10 w-10 text-foreground-muted mb-3" />
+            <p className="text-foreground-muted">El paciente no tiene documentos clínicos registrados.</p>
           </div>
         )}
       </div>

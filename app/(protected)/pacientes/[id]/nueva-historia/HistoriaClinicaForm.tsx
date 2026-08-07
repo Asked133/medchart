@@ -223,8 +223,8 @@ export default function HistoriaClinicaForm({
       </div>
 
       <div>
-        <h1 className="text-2xl font-bold text-white">Nueva Historia Clínica</h1>
-        <p className="text-slate-400 text-sm mt-1">{patient.full_name}</p>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Nueva Historia Clínica</h1>
+        <p className="text-foreground-muted text-sm mt-1">{patient.full_name}</p>
       </div>
 
       <FormProvider {...methods}>
@@ -233,17 +233,17 @@ export default function HistoriaClinicaForm({
           <FormSection id="ficha_identificacion" title="Ficha de Identificación" isExpanded={expandedSections['ficha_identificacion']} onToggle={toggleSection}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Nombre completo *</label>
+                <label className="block text-xs font-medium text-foreground-muted mb-1">Nombre completo *</label>
                 <input
                   {...methods.register('ficha_identificacion.nombre_completo')}
-                  className="block w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-800/50 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm"
+                  className="block w-full px-3 py-2 border border-border-strong rounded-lg bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-brand sm:text-sm shadow-clinical-sm"
                 />
                 {methods.formState.errors.ficha_identificacion?.nombre_completo && (
                   <p className="text-red-400 text-xs mt-1">{methods.formState.errors.ficha_identificacion.nombre_completo.message}</p>
                 )}
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Fecha de nacimiento *</label>
+                <label className="block text-xs font-medium text-foreground-muted mb-1">Fecha de nacimiento *</label>
                 <input
                   type="date"
                   {...methods.register('ficha_identificacion.fecha_nacimiento', {
@@ -252,7 +252,7 @@ export default function HistoriaClinicaForm({
                       if (calculated) methods.setValue('ficha_identificacion.edad', calculated)
                     }
                   })}
-                  className="block w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-800/50 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm"
+                  className="block w-full px-3 py-2 border border-border-strong rounded-lg bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-brand sm:text-sm shadow-clinical-sm"
                 />
                 {methods.formState.errors.ficha_identificacion?.fecha_nacimiento && (
                   <p className="text-red-400 text-xs mt-1">{methods.formState.errors.ficha_identificacion.fecha_nacimiento.message}</p>
@@ -270,7 +270,7 @@ export default function HistoriaClinicaForm({
                 ]}
               />
 
-              <FormTextInput name="ficha_identificacion.edad" label="Edad (Cálculo automático)" placeholder="Ej. 28 años" />
+              <FormTextInput name="ficha_identificacion.edad" label="Edad (Cálculo automático)" placeholder="Ej. 28 años" readOnly={true} />
 
               {/* N2 — Grupo Sanguíneo (recomendado NOM-004) */}
               <FormSelect
@@ -523,7 +523,7 @@ export default function HistoriaClinicaForm({
           <div className="sticky bottom-4 mt-8 flex justify-end">
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-medium shadow-lg shadow-blue-900/20 flex items-center gap-2 transition-all"
+              className="bg-brand hover:bg-brand-hover text-white px-6 py-3 rounded-xl font-medium shadow-clinical-sm hover:shadow-clinical flex items-center gap-2 transition-all hover:-translate-y-0.5"
             >
               <Save className="w-5 h-5" />
               Guardar Historia Clínica

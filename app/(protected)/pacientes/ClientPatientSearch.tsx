@@ -230,11 +230,11 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar paciente por nombre..."
-            className="block w-full pl-10 pr-3 py-3 border border-slate-700 rounded-xl leading-5 bg-slate-800/50 text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
+            className="block w-full pl-10 pr-3 py-3 border border-border-strong rounded-xl leading-5 bg-surface text-foreground placeholder-foreground-muted focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand sm:text-sm transition-colors shadow-clinical-sm"
           />
           {isSearching && (
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-text"></div>
             </div>
           )}
         </div>
@@ -245,7 +245,7 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
             setNewPatientName(query.trim())
             setShowNewModal(true)
           }}
-          className="inline-flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-slate-900 transition-colors whitespace-nowrap shrink-0"
+          className="inline-flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-xl shadow-clinical-sm text-white bg-brand hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand focus:ring-offset-background transition-colors whitespace-nowrap shrink-0"
         >
           <Plus className="w-4 h-4 mr-2" />
           Nuevo Paciente
@@ -253,22 +253,22 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
       </div>
 
       {/* Resultados y lista general */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-surface border border-border-subtle rounded-xl overflow-hidden shadow-clinical-sm">
         {results.length > 0 ? (
-          <ul className="divide-y divide-slate-800/50">
+          <ul className="divide-y divide-border-subtle">
             {results.map((patient) => (
               <li key={patient.id}>
                 <Link
                   href={`/pacientes/${patient.id}`}
-                  className="flex items-center px-4 py-4 hover:bg-slate-800/50 transition-colors group"
+                  className="flex items-center px-4 py-4 hover:bg-surface-hover transition-colors group"
                 >
                   <div className="flex-shrink-0 mr-4">
-                    <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20 group-hover:bg-blue-500/20 transition-colors">
-                      <User className="w-5 h-5 text-blue-400" />
+                    <div className="w-10 h-10 rounded-full bg-brand-muted flex items-center justify-center border border-brand/20 group-hover:bg-brand/20 transition-colors">
+                      <User className="w-5 h-5 text-brand-text" />
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-200 truncate">
+                    <p className="text-sm font-medium text-foreground truncate group-hover:text-brand-text transition-colors">
                       {patient.full_name}
                     </p>
                   </div>
@@ -280,12 +280,12 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
           /* Estado de Carga Elegante (Skeleton) — Evita sustos de "No hay pacientes" */
           <div className="p-6 space-y-4 animate-pulse">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-slate-800 shrink-0" />
-              <div className="h-4 bg-slate-800 rounded w-1/3" />
+              <div className="w-10 h-10 rounded-full bg-surface-hover shrink-0" />
+              <div className="h-4 bg-surface-hover rounded w-1/3" />
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-slate-800 shrink-0" />
-              <div className="h-4 bg-slate-800 rounded w-1/4" />
+              <div className="w-10 h-10 rounded-full bg-surface-hover shrink-0" />
+              <div className="h-4 bg-surface-hover rounded w-1/4" />
             </div>
           </div>
         ) : (
@@ -293,13 +293,13 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
           <div className="px-4 py-12 text-center">
             {query.trim().length > 0 ? (
               <>
-                <p className="text-sm text-slate-400 mb-4">No se encontraron pacientes con "{query}"</p>
+                <p className="text-sm text-foreground-muted mb-4">No se encontraron pacientes con "{query}"</p>
                 <button
                   onClick={() => {
                     setNewPatientName(query)
                     setShowNewModal(true)
                   }}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-slate-900 transition-colors"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-clinical-sm text-white bg-brand hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand focus:ring-offset-background transition-colors"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Registrar "{query}" como nuevo paciente
@@ -307,14 +307,14 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
               </>
             ) : (
               <div className="flex flex-col items-center">
-                <User className="w-12 h-12 text-slate-600 mb-3" />
-                <p className="text-sm text-slate-400 mb-4">Aún no tienes pacientes registrados.</p>
+                <User className="w-12 h-12 text-foreground-muted mb-3 opacity-50" />
+                <p className="text-sm text-foreground-muted mb-4">Aún no tienes pacientes registrados.</p>
                 <button
                   onClick={() => {
                     setNewPatientName('')
                     setShowNewModal(true)
                   }}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-500 transition-colors"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-clinical-sm text-white bg-brand hover:bg-brand-hover transition-colors"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Registrar tu primer paciente
@@ -327,10 +327,10 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
 
       {/* Modal de Nuevo Paciente */}
       {showNewModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
-            <div className="px-6 py-5 border-b border-slate-800">
-              <h3 className="text-lg font-medium text-white">Nuevo Paciente</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+          <div className="bg-surface border border-border-strong rounded-2xl w-full max-w-md overflow-hidden shadow-clinical">
+            <div className="px-6 py-5 border-b border-border-subtle">
+              <h3 className="text-lg font-medium text-foreground tracking-tight">Nuevo Paciente</h3>
             </div>
             
             <form onSubmit={handleCreatePatient} className="p-6 space-y-4">
@@ -351,7 +351,7 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
               )}
 
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-1">
+                <label htmlFor="name" className="block text-sm font-medium text-foreground-muted mb-1">
                   Nombre completo
                 </label>
                 <input
@@ -359,7 +359,7 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
                   id="name"
                   value={newPatientName}
                   onChange={(e) => setNewPatientName(e.target.value)}
-                  className="block w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-800 text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="block w-full px-3 py-2 border border-border-strong rounded-lg bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand sm:text-sm"
                   required
                   autoFocus
                 />
@@ -369,14 +369,14 @@ export default function ClientPatientSearch({ doctorId }: { doctorId: string }) 
                 <button
                   type="button"
                   onClick={() => setShowNewModal(false)}
-                  className="flex-1 px-4 py-2 border border-slate-700 text-slate-300 rounded-lg hover:bg-slate-800 hover:text-white transition-colors text-sm font-medium"
+                  className="flex-1 px-4 py-2 border border-border-strong text-foreground-muted rounded-lg hover:bg-surface-hover hover:text-foreground transition-colors text-sm font-medium"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="flex-1 px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-hover transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-clinical-sm"
                 >
                   {isCreating ? 'Guardando...' : 'Guardar Paciente'}
                 </button>

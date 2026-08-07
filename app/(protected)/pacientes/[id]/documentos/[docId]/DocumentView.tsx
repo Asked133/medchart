@@ -241,11 +241,11 @@ export default function DocumentView({
   const renderTextBlock = (key: string, title: string, text?: string) => {
     if (!text || !text.trim()) return null
     return (
-      <div key={key} className="bg-slate-900 border border-slate-800 rounded-xl p-5 mb-4">
-        <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wide mb-3 border-b border-slate-800 pb-2">
+      <div key={key} className="bg-surface border border-border-subtle rounded-xl p-5 mb-4 shadow-clinical-sm">
+        <h3 className="text-sm font-semibold text-brand uppercase tracking-wide mb-3 border-b border-border-subtle pb-2">
           {title}
         </h3>
-        <p className="text-sm text-slate-200 whitespace-pre-line leading-relaxed">{text}</p>
+        <p className="text-sm text-foreground whitespace-pre-line leading-relaxed">{text}</p>
       </div>
     )
   }
@@ -257,15 +257,15 @@ export default function DocumentView({
     if (entries.length === 0) return null
 
     return (
-      <div key={key} className="bg-slate-900 border border-slate-800 rounded-xl p-5 mb-4">
-        <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wide mb-4 border-b border-slate-800 pb-2">
+      <div key={key} className="bg-surface border border-border-subtle rounded-xl p-5 mb-4 shadow-clinical-sm">
+        <h3 className="text-sm font-semibold text-brand uppercase tracking-wide mb-4 border-b border-border-subtle pb-2">
           {title}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {entries.map(([fKey, val]) => (
             <div key={fKey}>
-              <div className="text-xs font-medium text-slate-400 mb-1">{LABELS[fKey] || fKey}</div>
-              <div className="text-sm text-slate-200 bg-slate-800/40 rounded-lg px-3 py-2 border border-slate-800">
+              <div className="text-xs font-medium text-foreground-muted mb-1">{LABELS[fKey] || fKey}</div>
+              <div className="text-sm text-foreground bg-surface-active rounded-lg px-3 py-2 border border-border-strong">
                 {val}
               </div>
             </div>
@@ -282,15 +282,15 @@ export default function DocumentView({
     if (entries.length === 0) return null
 
     return (
-      <div key="signos_vitales" className="bg-slate-900 border border-slate-800 rounded-xl p-5 mb-4">
-        <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wide mb-4 border-b border-slate-800 pb-2">
+      <div key="signos_vitales" className="bg-surface border border-border-subtle rounded-xl p-5 mb-4 shadow-clinical-sm">
+        <h3 className="text-sm font-semibold text-brand uppercase tracking-wide mb-4 border-b border-border-subtle pb-2">
           Signos Vitales y Somatometría
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {entries.map(([vKey, val]) => (
             <div key={vKey}>
-              <div className="text-xs font-medium text-slate-400 mb-1">{LABELS[vKey] || vKey}</div>
-              <div className="text-sm text-slate-200 bg-slate-800/40 rounded-lg px-3 py-2 border border-slate-800">
+              <div className="text-xs font-medium text-foreground-muted mb-1">{LABELS[vKey] || vKey}</div>
+              <div className="text-sm text-foreground bg-surface-active rounded-lg px-3 py-2 border border-border-strong">
                 {val}
               </div>
             </div>
@@ -372,7 +372,7 @@ export default function DocumentView({
     <div className="max-w-4xl mx-auto pb-20">
       {/* Botón único permitido: Volver al paciente */}
       <div className="mb-6 flex items-center justify-between">
-        <Link href={`/pacientes/${patientId}`} className="text-blue-400 hover:text-blue-300 flex items-center text-sm font-medium transition-colors">
+        <Link href={`/pacientes/${patientId}`} className="text-brand-text hover:text-brand-hover flex items-center text-sm font-medium transition-colors">
           <ArrowLeft className="w-4 h-4 mr-1" /> Volver al paciente
         </Link>
         
@@ -390,16 +390,16 @@ export default function DocumentView({
       </div>
 
       {/* Encabezado */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-6">
+      <div className="bg-surface border border-border-subtle rounded-2xl p-6 mb-6 shadow-clinical-sm">
         <div className="flex items-center gap-3 mb-2">
-          <div className="bg-blue-500/20 p-2 rounded-lg">
-            <FileText className="w-6 h-6 text-blue-400" />
+          <div className="bg-brand/10 border border-brand/20 p-2 rounded-lg">
+            <FileText className="w-6 h-6 text-brand-text" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">
+            <h1 className="text-xl font-bold text-foreground tracking-tight">
               {isNotaEvolucion ? 'Nota de Evolución' : 'Historia Clínica'}
             </h1>
-            <p className="text-slate-400 text-sm">
+            <p className="text-foreground-muted text-sm">
               {new Date(document.document_date).toLocaleDateString('es-MX', {
                 weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
               })}
@@ -407,15 +407,15 @@ export default function DocumentView({
           </div>
         </div>
         {patient && (
-          <div className="mt-4 pt-4 border-t border-slate-800 flex items-center justify-between">
+          <div className="mt-4 pt-4 border-t border-border-subtle flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-500 font-medium">PACIENTE</p>
-              <p className="text-slate-200 font-medium">{patient.full_name}</p>
+              <p className="text-xs text-foreground-muted font-medium">PACIENTE</p>
+              <p className="text-foreground font-medium">{patient.full_name}</p>
             </div>
             {patient.date_of_birth && (
               <div className="text-right">
-                <p className="text-xs text-slate-500 font-medium">FECHA DE NACIMIENTO</p>
-                <p className="text-slate-200">{patient.date_of_birth}</p>
+                <p className="text-xs text-foreground-muted font-medium">FECHA DE NACIMIENTO</p>
+                <p className="text-foreground">{patient.date_of_birth}</p>
               </div>
             )}
           </div>
@@ -427,8 +427,8 @@ export default function DocumentView({
 
       {/* Sección de Imágenes Adjuntas en cuadrícula con visor modal (lightbox) */}
       {images.length > 0 && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 mt-6">
-          <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wide mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">
+        <div className="bg-surface border border-border-subtle rounded-xl p-5 mt-6 shadow-clinical-sm">
+          <h3 className="text-sm font-semibold text-brand uppercase tracking-wide mb-4 border-b border-border-subtle pb-2 flex items-center gap-2">
             <ImageIcon className="w-4 h-4" />
             Imágenes adjuntas
           </h3>
@@ -438,11 +438,11 @@ export default function DocumentView({
                 key={img.id}
                 type="button"
                 onClick={() => setActiveImageModal(img.url)}
-                className="block text-left relative aspect-square bg-slate-800 rounded-lg overflow-hidden border border-slate-700 hover:border-blue-500 transition-colors group focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="block text-left relative aspect-square bg-background rounded-lg overflow-hidden border border-border-strong hover:border-brand transition-colors group focus:outline-none focus:ring-2 focus:ring-brand shadow-clinical-sm"
               >
                 <img src={img.url} alt="Adjunto" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-slate-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="text-white text-xs font-medium bg-slate-900/80 px-2 py-1 rounded">Ampliar</span>
+                <div className="absolute inset-0 bg-background/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <span className="text-foreground text-xs font-medium bg-surface/90 px-2 py-1 rounded shadow-clinical-sm border border-border-subtle">Ampliar</span>
                 </div>
               </button>
             ))}
@@ -453,17 +453,17 @@ export default function DocumentView({
       {/* Lightbox / Visor de Imagen Ampliada */}
       {activeImageModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 backdrop-blur-md p-4"
           onClick={() => setActiveImageModal(null)}
         >
           <div
-            className="relative max-w-5xl max-h-[90vh] overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl flex flex-col items-center justify-center p-2"
+            className="relative max-w-5xl max-h-[90vh] overflow-hidden rounded-2xl border border-border-strong bg-surface shadow-clinical flex flex-col items-center justify-center p-2"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
               onClick={() => setActiveImageModal(null)}
-              className="absolute top-4 right-4 z-10 bg-slate-950/80 hover:bg-slate-900 text-slate-300 hover:text-white p-2 rounded-full border border-slate-700 transition-colors"
+              className="absolute top-4 right-4 z-10 bg-background/80 hover:bg-surface-active text-foreground-muted hover:text-foreground p-2 rounded-full border border-border-strong transition-colors"
               title="Cerrar"
             >
               <X className="w-6 h-6" />
